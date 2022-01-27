@@ -18,6 +18,7 @@ class CoreNode(object):
         """
         self._buffer = Buffer(max_size=MAX_EMBEDDING_PER_LABEL)
         self._conversation_started = False
+        self._human_presence = False
         self._prev_time = None
         self._prev_label = -1
         self._prev_name = ''
@@ -228,35 +229,37 @@ class CoreNode(object):
                 responseMovingFunc = rospy.ServiceProxy('responseMoving', ResponseMoving)
                 _ = responseMovingFunc()  
 
+            
+            if self._human_presence:
             # ______________________________________________________________________________
             # 6.2   We have to stop the listening before the robot talk because the microphone 
             #       hear pepper and handle that sentence.
 
-            if ON_PEPPER:
-                rospy.wait_for_service('tts')
-                text2speechFunc = rospy.ServiceProxy('tts', Text2Speech)
-                _ = text2speechFunc(response_text)
+                if ON_PEPPER:
+                    rospy.wait_for_service('tts')
+                    text2speechFunc = rospy.ServiceProxy('tts', Text2Speech)
+                    _ = text2speechFunc(response_text)
 
-            if self._verbose:
-                print(f'[CORE] TTS: {response_text}')
+                if self._verbose:
+                    print(f'[CORE] TTS: {response_text}')
 
             # ______________________________________________________________________________
             # 6.3   Pepper start listening, so we start listening movements
 
-            if ON_PEPPER:
-                rospy.wait_for_service('listeningMoving')
-                listeningMovingFunc = rospy.ServiceProxy('listeningMoving', ListeningMoving)
-                _ = listeningMovingFunc() 
+                if ON_PEPPER:
+                    rospy.wait_for_service('listeningMoving')
+                    listeningMovingFunc = rospy.ServiceProxy('listeningMoving', ListeningMoving)
+                    _ = listeningMovingFunc() 
 
             # ______________________________________________________________________________
             # 6.4   After Pepper has told, we restart the listening.
 
-            rospy.wait_for_service('startListening')
-            startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
-            _ = startListeningFunc()
+                rospy.wait_for_service('startListening')
+                startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
+                _ = startListeningFunc()
 
-            if self._verbose:
-                print('[CORE] 6.4. Start Listening')
+                if self._verbose:
+                    print('[CORE] 6.4. Start Listening')
 
         except rospy.ServiceException as e:
             print(f'[CORE] rospy.ServiceException. Service call failed: {e}')
@@ -274,9 +277,9 @@ class CoreNode(object):
         """
         # This variable contains True if an human is present, false if not. We can
         # assume if this function is running that state this value is just changed.
-        humanPresent = presence.data
+        self._human_presence = presence.data
 
-        if humanPresent:
+        if self._human_presence:
             # In this state the microphone is enabled and consequentially all the 
             # application work.
 
