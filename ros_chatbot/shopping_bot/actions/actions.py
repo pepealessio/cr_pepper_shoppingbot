@@ -72,10 +72,12 @@ class ActionShow(Action):
             # Compose the show message
             data = data_all_user[id]
             
-            text = "Your shopping list:\n "
+            text = "In your list there are "
             for k in data.keys():
                 v = data[k]
-                text += str(v) + " " + k +  ","       
+                text += str(v) + " " + k +  "," 
+
+            text = text[:-2]      
         else:
             text = "Your shopping list is empty!"      
         
