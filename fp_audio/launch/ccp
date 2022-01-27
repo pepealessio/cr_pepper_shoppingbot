@@ -17,5 +17,6 @@
     <node pkg="pepper_nodes" type="text2speech_node.py" name="text2speech" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
     <node pkg="pepper_nodes" type="follow_node.py" name="follow_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
     <node pkg="pepper_nodes" type="interaction_movement.py" name="interaction_movement" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+    <node pkg="pepper_nodes" type="image_input_node.py" name="image_input" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
 
 </launch>
