@@ -38,32 +38,28 @@ class UserMessanger():
         """
         self.username=""
         self.id=-1
-    
+
+
 class DialogueServer:
+    """Ros Node to interact with the RASA server."""
 
     def __init__(self):
+        """Just init the node."""
         self.user_messanger = UserMessanger()
     
     def _set_id_username_slot(self, username, id):
+        """ Sets id and name of the user through post request
         """
-        Sets id and name of the user through post request
-        """
-        #if (not self.user_messanger.isUserDefined() and username != '') or (self.user_messanger.getID()!=id and username != ''):
         if username is "":
             username = None
         
-        ## vedi se rimane settato -1
         url = 'http://localhost:5002/conversations/bot/tracker/events?include_events=NONE'
-        
         msg = ({"event":"slot","name":"slot_id","value":str(id),"timestamp":0},{"event":"slot","name":"username","value":username,"timestamp":0})
         self.user_messanger.setID(id)
         self.user_messanger.setUsername(username)
-        # set slots
-        r1 = requests.post(url, json=msg)
-       
-        # print("[DialogueServer_SET] ","id -->", self.user_messanger.getID(), " username -->", self.user_messanger.getUsername())
-        
 
+        # set slots
+        r = requests.post(url, json=msg)    
 
     def _get_id_username_slot(self):
         """
@@ -73,9 +69,7 @@ class DialogueServer:
         url = "http://localhost:5002/conversations/bot/tracker"
         r1 = requests.get(url=url)
         username = r1.json()["slots"]["username"]
-        id = r1.json()["slots"]["slot_id"] #check if it is an int
-        # print("[DialogueServer_GET]","id -->", id, " username -->", username)
-
+        id = r1.json()["slots"]["slot_id"] 
         
         return username, id
 
@@ -94,7 +88,6 @@ class DialogueServer:
             "sender": 'bot',
             "message": input_text
         }
-
 
         # If there is a new user in the scene  we set his id and username 
         #( an user is new if before there is no user or the last user is different)
@@ -126,10 +119,7 @@ class DialogueServer:
 
     def start(self):
         rospy.init_node('dialogue_service')
-
-        s = rospy.Service('dialogue_server',
-                            Dialogue, self._handle_dialogue)
-
+        rospy.Service('dialogue_server', Dialogue, self._handle_dialogue)
         rospy.logdebug('Dialogue server READY.')
         rospy.spin()
     
