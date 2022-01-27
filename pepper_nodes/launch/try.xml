@@ -1,7 +1,0 @@
-<launch>
-    <arg name="nao_ip" default="$(optenv NAO_IP 10.0.1.207)" />
-    <arg name="nao_port" default="$(optenv NAO_PORT 9559)" />
-    
-    <node pkg="pepper_nodes" type="try_tracking.py" name="try_tracking" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen" />
-  
-</launch>
