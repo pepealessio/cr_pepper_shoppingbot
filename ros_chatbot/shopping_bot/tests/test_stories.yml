@@ -1,0 +1,620 @@
+#### This file contains tests to evaluate that your bot behaves as expected.
+#### If you want to learn more, please see the docs: https://rasa.com/docs/rasa/testing-your-assistant
+
+stories:
+- story: St1
+  steps:
+  - user: |
+      hello
+    intent: greet
+  - action: utter_greet
+  - user: |
+     show my list
+    intent: show
+  - action: action_show
+  - user: |
+      Goodbye!
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: St2
+  steps:
+  - user: |
+      add [ten](item_quantity) [bananas](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+
+- story: St3
+  steps:
+  - user: |
+      eliminate [5](item_quantity) [blue raspberry](item_name) in my list
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+
+- story: St4
+  steps:
+  - user: |
+      good morning
+    intent: greet
+  - action: utter_greet
+  - user: |
+     Can you modify the number of [apples](item_name) to [one](item_quantity)?
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+  - user: |
+      ok, thank you!
+    intent: thank_you
+  - action: utter_noworries
+
+- story: St5
+  steps:
+  - user: |
+     hi 
+    intent: greet
+  - action: utter_greet
+  - user: |
+      can you insert [seven](item_quantity) [cakes](item_name)?
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+  - user: |
+      ok, bye-bye
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: St6
+  steps:
+  - user: |
+     I don't want [five](item_quantity) [chicken](item_name). Can you eliminate that?
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+  - user: |
+      I want see my shopping list. Can you show me that?
+    intent: show
+  - action: action_show
+  - user: |
+      ok, bye
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: St7
+  steps:
+  - user: |
+     Good evening!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      I want [4](item_quantity) [pineapple](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+  - user: |
+      Update the number of [cookies](item_name) to [three](item_quantity)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+
+- story: St8
+  steps:
+  - user: |
+      Hello bot!
+    intent: greet
+  - action: utter_greet
+  - user: |
+     Delete [six](item_quantity) [banana](item_name)
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+  - user: |
+      tnk!
+    intent: thank_you
+  - action: utter_noworries
+
+- story: Add st 3
+  steps:
+  - user: |
+      Can you insert [fourteen](item_quantity) [cold milk](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+
+- story: Hello hello hello
+  steps:
+  - user: |
+      Hy
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Hello
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Goodmorning
+    intent: greet
+  - action: utter_greet
+
+- story: Rem st 1
+  steps:
+  - user: |
+      Can you delete [fourteen](item_quantity) [cold milk](item_name)
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+  
+  #modified by Alfo
+- story: Rem st 2
+  steps:
+  - user: |
+      Can you remove [white potatoes](item_name)
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - user: |
+      10
+    intent: inform
+  - action: items_form
+  - active_loop: null
+  - action: action_remove
+
+- story: Rem st 3
+  steps:
+  - user: |
+      I don't need [65](item_quantity)
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - user: |
+      [Broccoli](item_name)
+  - action: items_form
+  - active_loop: null
+  - action: action_remove
+
+- story: Upd st 1
+  steps:
+  - user: |
+      Can you update [34](item_quantity) [fried heart](item_name)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+
+- story: Upd st 2
+  steps:
+  - user: |
+      Update [white potatoes](item_name)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - user: |
+      [10](item_quantity)
+  - action: items_form
+  - active_loop: null
+  - action: action_update
+
+- story: Upd st 3
+  steps:
+  - user: |
+      Change [65](item_quantity)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - user: |
+      [Broccoli](item_name)
+  - action: items_form
+  - active_loop: null
+  - action: action_update
+
+- story: Complete 1
+  steps:
+  - user: |
+      Hy bot!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Change [65](item_quantity)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - user: |
+      [Broccoli](item_name)
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+  - user: |
+      Thank you!
+    intent: thank_you
+  - action: utter_noworries
+
+- story: Complete 2
+  steps:
+  - user: |
+      Hello!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      I've changed my mind. I want [21](item_quantity) [pasta](item_name)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+  - user: |
+      Thank you!
+    intent: thank_you
+  - action: utter_noworries
+  - user: |
+      show my list
+    intent: show
+  - action: action_show
+  - user: |
+      Goodbye bot!
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: Complete 3
+  steps:
+  - user: |
+      Hello bot!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Can i see my list?
+    intent: show
+  - action: action_show
+  - user: |
+      Add [12](item_quantity) [blue berrys](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+  - user: |
+      Thank you!
+    intent: thank_you
+  - action: utter_noworries
+  - user: |
+      show my list
+    intent: show
+  - action: action_show
+  - user: |
+      Goodbye bot!
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: St_saluti_e_show
+  steps:
+  - user: |
+      hello
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Yo, show me my list
+    intent: show
+  - action: action_show
+
+
+- story: St2_solo_add
+  steps:
+  - user: |
+      add [4](item_quantity) [strawberries](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+
+
+- story: St3_solo_remove
+  steps:
+  - user: |
+        remove [2](item_quantity) [kiwi](item_name) from my list
+    intent: remove 
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+
+
+- story: St4_solo_update
+  steps:
+  - user: |
+      I changed my mind, i want [9](item_quantity) [strawberries](item_name)
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+
+
+- story: St5_remove_non_completa
+  steps:
+  - user: |
+      I want to remove the [apples](item_name) from my cart
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+
+- story: st6_add_non_completa
+  steps:
+  - user: |
+      hey man
+    intent: greet
+  - action: utter_greet
+  - user: |
+      I want to add some [oranges](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+
+- story: st7_show_e_add
+  steps:
+  - user: |
+      show me my list
+    intent: show
+  - action: action_show 
+  - user: |
+      Ok, now i want to add [five](item_quantity) [eggs](item_name)
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+
+
+- story: st8_show_e_remove
+  steps:
+  - user: |
+      show me my list
+    intent: show
+  - action: action_show 
+  - user: |
+      Ok, now i want to remove [five](item_quantity) [eggs](item_name)
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+
+- story: St2
+  steps:
+  - user: |
+      Hey dear
+    intent: greet
+  - action: utter_greet
+  - user: |
+     Please, can you show my shopping list?
+    intent: show
+  - action: action_show
+  - user: |
+      Ok, now can you add [five](item_quantity) [eggs](item_name)?
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, bye!
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: St3
+  steps:
+  - user: |
+      Hi bot
+    intent: greet
+  - action: utter_greet
+  - user: |
+     Please, can you show my shopping list?
+    intent: show
+  - action: action_show
+  - user: |
+      Ok, now can you add [five](item_quantity) [eggs](item_name)?
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, bye!
+    intent: goodbye
+  - action: utter_goodbye
+
+
+- story: St4
+  steps:
+  - user: |
+      Hi bot
+    intent: greet
+  - action: utter_greet
+  - user: |
+     Let me see my list
+    intent: show
+  - action: action_show
+  - user: |
+      Mhhh ok, I have changed my mind I need [2](item_quantity) [bottles of water](item_name).
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, thank u!
+    intent: thank_you
+  - action: utter_noworries
+
+
+- story: St5
+  steps:
+  - user: |
+      Hello friends!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Mhhh ok, I want to remove [forty-one](item_quantity) [bottles of water](item_name).
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, thank u!
+    intent: thank_you
+  - action: utter_noworries
+
+- story: St6
+  steps:
+  - user: |
+      Hello bot!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Mhhh ok, Can you insert in list [twenty-one](item_quantity) [apples](item_name).
+    intent: add
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_add
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Perfect, let me see my shopping list!
+    intent: show
+  - action: action_show
+  - user: |
+      Ok bot, thank u very much!
+    intent: thank_you
+  - action: utter_noworries
+
+- story: St7
+  steps:
+  - user: |
+      Hey my friend!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      Mhhh ok, I want to see my list.
+    intent: show
+  - action: action_show
+  - user: |
+      Perfect, I have decided to delete from list [2](item_quantity) [almond](item_name). Can you do that?
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, thank u!
+    intent: thank_you
+  - action: utter_noworries
+
+
+- story: inform first
+  steps:
+  - user: |
+      [potatoes](item_name)
+    intent: inform
+  - action: utter_intent
+  - user: |
+      remove
+    intent: remove
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_remove
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, thank u!
+    intent: thank_you
+  - action: utter_noworries
+
+- story: inform first n
+  steps:
+  - user: |
+      [43](item_quantity)
+    intent: inform
+  - action: utter_intent
+  - user: |
+      update
+    intent: update
+  - action: items_form
+  - active_loop: items_form
+  - active_loop: null
+  - action: action_update
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - user: |
+      Ok bot, thank u!
+    intent: thank_you
+  - action: utter_noworries
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+

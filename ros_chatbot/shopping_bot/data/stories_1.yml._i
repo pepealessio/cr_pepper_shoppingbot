@@ -1,0 +1,236 @@
+
+version: "2.0"
+stories:
+- story: interactive_story_1
+  steps:
+  - intent: greet
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: deborah
+  - slot_was_set:
+    - username: deborah
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: utter_greet
+  - intent: show
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - username: deborah
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_show
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
+
+
+- story: interactive_story_2
+  steps:
+  - intent: show
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: debora
+  - slot_was_set:
+    - username: debora
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_show
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
+
+- story: interactive_story_3
+  steps:
+  - intent: greet
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: alfonso
+  - slot_was_set:
+    - username: alfonso
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: utter_greet
+  - intent: empty
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - username: alfonso
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_empty
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
+
+- story: interactive_story_4
+  steps:
+  - intent: empty
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: Alfredo
+  - slot_was_set:
+    - username: Alfredo
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_empty
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: add
+    entities:
+    - item_quantity: one
+    - item_name: apple
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: apple
+  - action: items_form
+  - active_loop: items_form
+  - slot_was_set:
+    - username: Alfredo
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: apple
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: apple
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_add
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: show
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - username: Alfredo
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_show
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+
+- story: interactive_story_5
+  steps:
+  - intent: empty
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: Johan
+  - slot_was_set:
+    - username: Johan
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_empty
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: thank_you
+  - action: utter_noworries
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
+
+- story: interactive_story_6
+  steps:
+  - intent: greet
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: Madame
+  - slot_was_set:
+    - username: Madame
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: utter_greet
+  - intent: add
+    entities:
+    - item_quantity: one
+    - item_name: slice of pizza
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: slice of pizza
+  - action: items_form
+  - active_loop: items_form
+  - slot_was_set:
+    - username: Madame
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: slice of pizza
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: slice of pizza
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_add
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: show
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - username: Madame
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_show
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart

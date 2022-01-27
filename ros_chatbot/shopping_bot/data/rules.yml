@@ -1,0 +1,69 @@
+version: "2.0"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
+
+# Thin commented rule is not good if we want to implement optional features
+# pheraps we can generalize that using this beaviour ->
+# bot: -> what do you want to manage?
+#         options: 
+#         1) Users  (so all operation that involve users)
+#         2) Users_list (all operation that involve lists)
+# So the user should choose between this options and then 
+# we can set a slot, then we use its value to choose
+# the action that the bot has to do.
+
+# As we have designed the items_form form is impossible to define next 
+# specific action after slot was filled
+
+# - rule: Activate items_form
+#   steps:
+#   - intent: add
+#   - action: items_form
+#   - active_loop: items_form
+
+# - rule: Submit items_form
+#   condition:
+#   - active_loop: items_form #if facility form is activated
+#   steps: # from line 23 to 27 is used to wait that all slots of forms are filled
+#   - action: items_form
+#   - active_loop: null
+#   - slot_was_set:
+#     - requested_slot: null
+#   #- action: utter_thanks # then i can perform multiple actions 
+#   - action: action_add
+
+# - rule: Say `hello` whenever the user sends a message with intent `greet`
+#   steps:
+#   - intent: greet
+#   # - action: utter_greet
+#   - action: username_form
+#   - active_loop: username_form
+
+
+# - rule: Submit form
+#   condition:
+#   # Condition that form is active.
+#   - active_loop: username_form
+#   steps:
+#   # Form is deactivated
+#   - action: username_form
+#   - active_loop: null
+#   - slot_was_set:
+#     - requested_slot: null
+#   # The actions we want to run when the form is submitted.
+#   - action: utter_greet
+
+- rule: fallback_rule
+  steps: 
+  - intent: nlu_fallback
+  - action: utter_please_rephrase
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null

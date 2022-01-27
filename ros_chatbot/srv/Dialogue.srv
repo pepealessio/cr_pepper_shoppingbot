@@ -1,0 +1,7 @@
+string input_text
+string username
+int16 id
+---
+string answer
+string bot_username
+int16 bot_id

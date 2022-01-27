@@ -1,0 +1,4 @@
+std_msgs/Float32MultiArray in_embedding
+---
+std_msgs/Int16 out_label
+std_msgs/String out_name

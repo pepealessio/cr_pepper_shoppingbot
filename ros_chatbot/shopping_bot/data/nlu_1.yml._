@@ -1,0 +1,41 @@
+version: "2.0"
+nlu:
+- intent: greet
+  examples: |
+    - hi
+    - hello bot
+- intent: inform
+  examples: |
+    - I am [deborah](username)
+    - my name is [debora](username)
+    - I am [alfonso](username)
+    - my name is [Alfredo](username)
+    - I am [Johan](username)
+    - my name is [Madame](username)
+    - my name is [Debora](username)
+    - [2](item_quantity)
+    - [bananas](item_name)
+- intent: show
+  examples: |
+    - show my list
+- intent: goodbye
+  examples: |
+    - byw
+    - bye
+    - bye bot
+    - byee
+- intent: empty
+  examples: |
+    - do you empty my list
+    - bot empty my list
+    - empty my list
+- intent: add
+  examples: |
+    - ok add [one](item_quantity) [apple](item_name) please
+    - can you add [one](item_quantity) [slice of pizza](item_name)
+- intent: thank_you
+  examples: |
+    - thanks
+- intent: update
+  examples: |
+    - update my list

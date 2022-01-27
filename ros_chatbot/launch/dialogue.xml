@@ -1,0 +1,8 @@
+<launch>
+    <arg name="node_start_delay" default="60.0" />  
+    <node pkg="ros_chatbot" name="rasa_action" type="rasa_action.sh" output="screen"/>
+    <node pkg="ros_chatbot" name="rasa_server" type="rasa_server.sh" output="screen"/> 
+    <node pkg="ros_chatbot" name="dialogue_server" type="dialogue_server.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+    <node pkg="ros_chatbot" name="dialogue_interface" type="dialogue_interface.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+    <node pkg="ros_chatbot" name="trigger_action" type="trigger_action.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+</launch>

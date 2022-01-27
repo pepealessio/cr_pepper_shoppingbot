@@ -1,0 +1,26 @@
+version: "2.0"
+nlu:
+- intent: greet
+  examples: |
+    - hi boat
+    - [giusy](username)
+    - hi bot
+    - hey bot
+- intent: show
+  examples: |
+    - show myList
+- intent: inform
+  examples: |
+    - [alfonso](username)
+    - im [giusy](username)
+- intent: goodbye
+  examples: |
+    - biy boat
+    - ok byeee
+    - bye
+- intent: add
+  examples: |
+    - add [one](item_quantity) [melons](item_name)
+- intent: empty
+  examples: |
+    - empty MyList

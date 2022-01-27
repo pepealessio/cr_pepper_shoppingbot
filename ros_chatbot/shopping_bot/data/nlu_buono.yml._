@@ -1,0 +1,18 @@
+version: "2.0"
+nlu:
+- intent: greet
+  examples: |
+    - hi
+- intent: inform
+  examples: |
+    - My name is [Alfonso](username)
+    - i am [luca](username)
+- intent: show
+  examples: |
+    - show my list
+- intent: goodbye
+  examples: |
+    - bye
+- intent: add
+  examples: |
+    - add [one](item_quantity) [apple](item_name)

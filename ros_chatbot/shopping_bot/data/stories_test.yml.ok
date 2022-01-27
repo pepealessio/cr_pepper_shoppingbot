@@ -1,0 +1,66 @@
+
+version: "2.0"
+stories:
+- story: interactive_story_1
+  steps:
+  - intent: greet
+  - action: username_form
+  - active_loop: username_form
+  - slot_was_set:
+    - requested_slot: username
+  - slot_was_set:
+    - username: giusy
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: utter_greet
+  - intent: add
+    entities:
+    - item_quantity: one
+    - item_name: melons
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: melons
+  - action: items_form
+  - active_loop: items_form
+  - slot_was_set:
+    - username: giusy
+  - slot_was_set:
+    - item_quantity: one
+  - slot_was_set:
+    - item_name: melons
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_add
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
+
+- story: interactive_story_2
+  steps:
+  - intent: greet
+  - intent: inform
+    entities:
+    - username: giusy
+  - slot_was_set:
+    - username: giusy
+  - action: utter_greet
+  - intent: empty
+  - action: username_form
+  - slot_was_set:
+    - requested_slot: null
+  - active_loop: null
+  - action: action_empty
+  - slot_was_set:
+    - item_name: null
+  - slot_was_set:
+    - item_quantity: null
+  - intent: goodbye
+  - action: utter_goodbye
+  - action: action_restart
