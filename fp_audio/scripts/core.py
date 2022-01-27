@@ -287,6 +287,9 @@ class CoreNode(object):
             startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
             _ = startListeningFunc()
 
+            if self._verbose:
+                print('[CORE] Start Listening')
+
             # Also, Pepper start moving for listening.
             if ON_PEPPER:            
                 rospy.wait_for_service('listeningMoving')
@@ -302,6 +305,9 @@ class CoreNode(object):
             rospy.wait_for_service('stopListening')
             stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
             _ = stopListeningFunc()
+
+            if self._verbose:
+                print('[CORE] Stop Listening')
 
             self._prev_time = None
             self._prev_label = -1
