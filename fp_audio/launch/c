@@ -6,5 +6,6 @@
     <node pkg="fp_audio" type="speech2text.py" name="speech2text" output="screen"/>
     <node pkg="fp_audio" type="reidentification.py" name="reidentification" output="screen"/>
     <node pkg="fp_audio" type="image_publisher.py" name="image_publisher" output="screen"/>
+    <node pkg="fp_audio" type="video_detector.py" name="video_detector" output="screen"/>
     <node pkg="fp_audio" type="core.py" name="core" output="screen"/>
 </launch>
