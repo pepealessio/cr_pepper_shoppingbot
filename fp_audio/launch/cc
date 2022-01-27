@@ -1,5 +1,5 @@
 <launch>
-    <arg name="node_start_delay" default="40.0" /> 
+    <arg name="node_start_delay" default="90.0" /> 
     <node pkg="fp_audio" type="audio_detected.py" name="audio_detected" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
     <node pkg="fp_audio" type="speech2text.py" name="speech2text" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
     <node pkg="fp_audio" type="reidentification.py" name="reidentification" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
