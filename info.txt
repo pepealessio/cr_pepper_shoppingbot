@@ -1,0 +1,2 @@
+# kill all nodes
+rosnode kill -a
