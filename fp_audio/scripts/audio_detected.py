@@ -32,6 +32,9 @@ class AudioDetected(object):
         rospy.init_node('audio_detected_node', anonymous=True)
         rospy.Service('startListening', StartListening, self._handle_start_listening)
         rospy.Service('stopListening', StopListening, self._handle_stop_listening)
+
+        self.startListening()
+
         rospy.spin()
 
     def startListening(self):
@@ -40,13 +43,13 @@ class AudioDetected(object):
         if not self._running:
             self._running = True
             with self._m as source:
-                # print("[T2S] Start calibrating...")
+                print("[T2S] Start calibrating...")
                 self._r.adjust_for_ambient_noise(source, duration=CALIBRATION_TIME)
-                # print("[T2S] Calibrating finished.")
+                print("[T2S] Calibrating finished.")
 
             # Start background listening
             self._stop_listening_func = self._r.listen_in_background(self._m, self._listened_callback)
-            # print("[T2S] Start listening")
+            print("[T2S] Start listening")
 
     def stopListening(self):
         """Stop the listening from the microphone.
@@ -55,7 +58,7 @@ class AudioDetected(object):
             if self._stop_listening_func is not None:
                 self._stop_listening_func()
                 self._stop_listening_func = None
-            # print("[T2S] Stop listening")
+                print("[T2S] Stop listening")
 
             self._running = False
 

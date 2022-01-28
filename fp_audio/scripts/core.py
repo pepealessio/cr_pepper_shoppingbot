@@ -90,6 +90,10 @@ class CoreNode(object):
         Raise:
             rospy.ServiceException: if a service fail or it's not reachble.
         """
+
+        if not self._human_presence:
+            return
+
         try:
             # ______________________________________________________________________________
             # 1.    Speech2Text to understand if there is noise or not in that audio.
@@ -104,6 +108,7 @@ class CoreNode(object):
                 print(f'[CORE] 1. Listened: {text}')
 
             if (text == '' or text == 'ERR1' or text == 'ERR2'):
+                
                 return
 
             # ______________________________________________________________________________
@@ -286,12 +291,12 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: Human presence detected.')
 
-            rospy.wait_for_service('startListening')
-            startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
-            _ = startListeningFunc()
+            # rospy.wait_for_service('startListening')
+            # startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
+            # _ = startListeningFunc()
 
             if self._verbose:
-                print('[CORE] Start Listening')
+                print('[CORE] Handle Listening')
 
             # Also, Pepper start moving for listening.
             if ON_PEPPER:            
@@ -305,12 +310,12 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: There is not human anymore.')
 
-            rospy.wait_for_service('stopListening')
-            stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
-            _ = stopListeningFunc()
+            # rospy.wait_for_service('stopListening')
+            # stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
+            # _ = stopListeningFunc()
 
             if self._verbose:
-                print('[CORE] Stop Listening')
+                print('[CORE] Non Handle Listening')
 
             self._prev_time = None
             self._prev_label = -1
@@ -320,9 +325,12 @@ class CoreNode(object):
             # Also reset the state of the chatbot, so that will be ready to start a new
             # conversation.
             if CHATBOT_RUNNING and self._conversation_started:
-                rospy.wait_for_service('trigger_action')
-                triggerActionFunc = rospy.ServiceProxy('trigger_action', ActionService)
-                _ = triggerActionFunc('action_restart')
+                # rospy.wait_for_service('trigger_action')
+                # triggerActionFunc = rospy.ServiceProxy('trigger_action', ActionService)
+                # _ = triggerActionFunc('restart')
+
+                # Sending "/restart" as a message the bot will be restarted.
+                self._chatbot_interaction('/restart', '', -1)
 
                 self._conversation_started = False
 
