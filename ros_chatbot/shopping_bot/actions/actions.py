@@ -40,9 +40,6 @@ def load_data(file_path=FILE_PATH):
 
 def save_data(data, file_path=FILE_PATH):
     """Save the data in the datapath prodided."""
-    if not os.path.exists(file_path):
-        os.mkdir(file_path)
-
     with open(file_path, 'wb') as f:
         pickle.dump(data,f)
     
