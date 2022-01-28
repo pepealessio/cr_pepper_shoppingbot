@@ -34,12 +34,14 @@ class CoreNode(object):
 
         # --- Pepper WakeUp & start following people
         if ON_PEPPER:
-            print('wakeup')
+            if self._verbose:
+                print('[CORE] Pepper wakeup')
             rospy.wait_for_service('wakeup')
             wakeUpFunc = rospy.ServiceProxy('wakeup', WakeUp)
             _ = wakeUpFunc()
 
-            print('startfollowing')
+            if self._verbose:
+                print('[CORE] Pepper startfollowing')
             rospy.wait_for_service('startFollowing')
             startFollowingFunc = rospy.ServiceProxy('startFollowing', StartFollowing)
             _ = startFollowingFunc()
