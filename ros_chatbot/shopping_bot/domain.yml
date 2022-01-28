@@ -38,8 +38,8 @@ slots:
 responses:
   utter_greet:
   - text: Hey {username}! How I can help you?
-  - text: Hello {username}!
-  - text: Hi {username}! 
+  - text: Hello {username}! How I can help you?
+  - text: Hi {username}! How I can help you?
   utter_noworries:
   - text: My pleasure.
   - text: You are welcome!

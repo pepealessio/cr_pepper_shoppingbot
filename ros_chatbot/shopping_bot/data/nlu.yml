@@ -242,7 +242,7 @@ nlu:
     - delete
     - delete from list
     - delete [two](item_quantity)
-    - remove [one](item_quantity) [melon](item_form) from my list
+    - remove [one](item_quantity) [melon](item_name) from my list
 - intent: update
   examples: |
     - update [apples](item_name) to [two](item_quantity).
@@ -1065,20 +1065,20 @@ nlu:
     - I m [giusy](username)
     - [debora](username)
     - I'm [federica](username)
-    - My name's[rosa](username)
+    - My name's [rosa](username)
     - [anna](username)
     - [alessandro](username)
-    - Yes, i am[roberta](username)
+    - Yes, i am [roberta](username)
     - [savino](username)
     - My name is [carlo](username)
-    - ok, my name is[antony](username)
+    - ok, my name is [antony](username)
     - The name is [pino](username)
     - [mariarosa](username)
-    - [arianna ](username)
-    - Ok, my name is[erika](username)
+    - [arianna] (username)
+    - Ok, my name is [erika](username)
     - I'm is [pio](username)
     - [norman](username)
-    - Yes, excuse me, my name is[riccardo](username)
+    - Yes, excuse me, my name is [riccardo](username)
     - [christian](username)
     - The name is [patrizia](username)
     - [francesca emma](username)
@@ -1095,7 +1095,7 @@ nlu:
     - [antimo](username)
     - My name is [pierluigi](username)
     - [ylenia](username)
-    - [rebecca ](username)
+    - [rebecca](username)
     - I'm [angelomaria](username)
     - [Luca](username)
     - My name is [Nando](username)
@@ -1163,4 +1163,6 @@ nlu:
   examples: |
     - daklfjakjfa
     - Can i play football outside?
-    - How  is the day, today?
+    - How is the day, today?
+    - What can you do?
+    - How are you?
