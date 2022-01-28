@@ -91,8 +91,8 @@ class CoreNode(object):
             rospy.ServiceException: if a service fail or it's not reachble.
         """
 
-        if not self._human_presence:
-            return
+        # if not self._human_presence:
+        #     return
 
         try:
             # ______________________________________________________________________________
@@ -291,9 +291,9 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: Human presence detected.')
 
-            # rospy.wait_for_service('startListening')
-            # startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
-            # _ = startListeningFunc()
+            rospy.wait_for_service('startListening')
+            startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
+            _ = startListeningFunc()
 
             if self._verbose:
                 print('[CORE] Handle Listening')
@@ -310,9 +310,9 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: There is not human anymore.')
 
-            # rospy.wait_for_service('stopListening')
-            # stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
-            # _ = stopListeningFunc()
+            rospy.wait_for_service('stopListening')
+            stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
+            _ = stopListeningFunc()
 
             if self._verbose:
                 print('[CORE] Non Handle Listening')
