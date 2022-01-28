@@ -33,7 +33,7 @@ class AudioDetected(object):
         rospy.Service('startListening', StartListening, self._handle_start_listening)
         rospy.Service('stopListening', StopListening, self._handle_stop_listening)
 
-        self.startListening()
+        # self.startListening()
 
         rospy.spin()
 
