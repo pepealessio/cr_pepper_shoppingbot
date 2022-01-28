@@ -57,8 +57,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  ExecuteJS.srv
-  LoadUrl.srv
   Rest.srv
   Text2Speech.srv
   WakeUp.srv
