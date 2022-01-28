@@ -77,7 +77,7 @@ if __name__ == "__main__":
     parser.add_option("--port", dest="port", default=9559)
     (options, args) = parser.parse_args()
     try:
-        image_input = ImageInputNode(options.ip, int(options.port))
+        image_input = ImageInputNode(options.ip, int(options.port), fps=5)
         image_input.start()
     except rospy.ROSInterruptException:
         pass
