@@ -117,7 +117,7 @@ class EmbeddingManager(object):
             self._data['y'].append(label)
             self._store_data()
 
-        print(f"[Re-Identification] Setting an embedding with label {label} .")
+        # print(f"[Re-Identification] Setting an embedding with label {label} .")
 
         return SetEmbeddingResponse(Int16(label))
 
