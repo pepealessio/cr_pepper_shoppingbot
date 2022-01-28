@@ -17,7 +17,6 @@ class CoreNode(object):
         """Initialize the core node.
         """
         self._buffer = Buffer(max_size=MAX_EMBEDDING_PER_LABEL)
-        self._conversation_started = False
         self._human_presence = False
         self._prev_time = None
         self._prev_label = -1
@@ -72,7 +71,6 @@ class CoreNode(object):
             new_label = bot_answer.bot_id
             new_name = bot_answer.bot_username
 
-            self._conversation_started = True
         else:
             # Simulating the chatbot answer
             new_name = input('name: ')
@@ -324,10 +322,8 @@ class CoreNode(object):
             
             # Also reset the state of the chatbot, so that will be ready to start a new
             # conversation.
-            if CHATBOT_RUNNING and self._conversation_started:
+            if CHATBOT_RUNNING:
                 self._chatbot_interaction('/restart', '', -1)
-
-                self._conversation_started = False
 
             # Stop moving Pepper
             if ON_PEPPER:
