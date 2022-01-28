@@ -4,7 +4,7 @@ from buffer import Buffer
 from config import *
 from datetime import datetime
 from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, StartListening, StopListening, NextLabel
-from ros_chatbot.srv import Dialogue, ActionService
+from ros_chatbot.srv import Dialogue
 from pepper_nodes.srv import Text2Speech, WakeUp, Rest, StartFollowing, StopFollowing, StopMoving, ListeningMoving, ResponseMoving
 import rospy
 from std_msgs.msg import Int16MultiArray, String, Int16, Bool
@@ -325,11 +325,6 @@ class CoreNode(object):
             # Also reset the state of the chatbot, so that will be ready to start a new
             # conversation.
             if CHATBOT_RUNNING and self._conversation_started:
-                # rospy.wait_for_service('trigger_action')
-                # triggerActionFunc = rospy.ServiceProxy('trigger_action', ActionService)
-                # _ = triggerActionFunc('restart')
-
-                # Sending "/restart" as a message the bot will be restarted.
                 self._chatbot_interaction('/restart', '', -1)
 
                 self._conversation_started = False
