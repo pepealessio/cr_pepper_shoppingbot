@@ -4,7 +4,8 @@ from config import *
 import cv2
 import numpy as np
 import rospy
-from std_msgs.msg import Bool, Image
+from sensor_msgs.msg import Image
+from std_msgs.msg import Bool
 from threading import Lock
 
 
