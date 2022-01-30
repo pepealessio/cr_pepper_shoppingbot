@@ -18,11 +18,64 @@ class CoreNode(object):
         """
         self._buffer = Buffer(max_size=MAX_EMBEDDING_PER_LABEL)
         self._human_presence = False
+        self._persistent_services = dict()  # dict str -> Touple[func, module]
         self._prev_time = None
         self._prev_label = -1
         self._prev_name = ''
 
         self._verbose = verbose
+
+    def _persistence_service_init(self, service_name, service_srv):
+        """Init a persistent connection to a service and store the needed parameters.
+
+        Args:
+            service_name (str): the service name.
+            service_srv (Module): the srv module.
+        """
+        self._persistent_services[service_name] = (rospy.ServiceProxy(service_name, service_srv), service_srv)
+
+    def _persistence_service_call(self, service_name, *args):
+        """Call a service with the provided arguments and return what the service provide.
+        This method handle connection problem, but do NOT handle wrong call.
+
+        Args:
+            service_name (str): the service name.
+
+        Returns:
+            any: the service output.
+        """
+        rospy.wait_for_service(service_name)
+        try:
+            return self._persistent_services[service_name][0](*args)
+        except rospy.ServiceException:
+            self._persistence_service_init(service_name, self._persistent_services[service_name][1])
+            return self._persistent_services[service_name][0](*args)
+
+    def _persistence_service_close(self, service_name):
+        """Close a service connection.
+
+        Args:
+            service_name (str): the service to shutdown.
+        """
+        try:
+            self._persistent_services[service_name][0].close()
+        except rospy.ServiceException:
+            pass
+        del self._persistent_services[service_name]
+
+    def _service_call(self, service_name, service_srv, *args):
+        """Call a service whitout use a persistent connection.
+
+        Args:
+            service_name (str): the service name
+            service_srv (Module): the service srv
+
+        Returns:
+            any: The service output
+        """
+        rospy.wait_for_service(service_name)
+        func = rospy.ServiceProxy(service_name, service_srv)
+        return func(*args)
 
     def start(self):
         """Start the node.
@@ -36,16 +89,26 @@ class CoreNode(object):
         if ON_PEPPER:
             if self._verbose:
                 print('[CORE] Pepper wakeup')
-            rospy.wait_for_service('wakeup')
-            wakeUpFunc = rospy.ServiceProxy('wakeup', WakeUp)
-            _ = wakeUpFunc()
+            self._service_call('wakeup', WakeUp)
 
             if self._verbose:
                 print('[CORE] Pepper startfollowing')
-            rospy.wait_for_service('startFollowing')
-            startFollowingFunc = rospy.ServiceProxy('startFollowing', StartFollowing)
-            _ = startFollowingFunc()
+            self._service_call('startFollowing', StartFollowing)
 
+        # Init the persistent service proxy
+        self._persistence_service_init('dialogue_server', Dialogue)
+        self._persistence_service_init('getEmbedding', GetEmbedding)
+        self._persistence_service_init('getLabel', GetLabel)
+        self._persistence_service_init('listeningMoving', ListeningMoving)
+        self._persistence_service_init('nextLabel', NextLabel)
+        self._persistence_service_init('s2t', Speech2Text)
+        self._persistence_service_init('responseMoving', ResponseMoving)
+        self._persistence_service_init('setEmbedding', SetEmbedding)
+        self._persistence_service_init('startListening', StartListening)
+        self._persistence_service_init('stopListening', StopListening)
+        self._persistence_service_init('stopMoving', StopMoving)
+        self._persistence_service_init('tts', Text2Speech)
+        
         if self._verbose:
             print('[CORE] Starting done.')
 
@@ -65,9 +128,7 @@ class CoreNode(object):
         """
 
         if CHATBOT_RUNNING:
-            rospy.wait_for_service('dialogue_server')
-            dialogue_service = rospy.ServiceProxy('dialogue_server', Dialogue)
-            bot_answer = dialogue_service(text, name, label)
+            bot_answer = self._persistence_service_call('dialogue_server', text, name, label)
             
             response = bot_answer.answer
             new_label = bot_answer.bot_id
@@ -96,39 +157,31 @@ class CoreNode(object):
 
         try:
             # ______________________________________________________________________________
-            # 1.    Speech2Text to understand if there is noise or not in that audio.
+            # 1.    Stop background listening after a sentence was getted to avoid the issues 
+            #       of Pepper listen what it said itself.
+            self._persistence_service_call('stopListening')
+
+            # ______________________________________________________________________________
+            # 1.1   Speech2Text to understand if there is noise or not in that audio.
             #       Also, get the text from the audio. 
 
-            rospy.wait_for_service('s2t')
-            speech2textFunc = rospy.ServiceProxy('s2t', Speech2Text)
-            speech2textResp = speech2textFunc(audio)
+            speech2textResp = self._persistence_service_call('s2t', audio)
             text = speech2textResp.output.data
+
+            if (text == '' or text == 'ERR1' or text == 'ERR2'):
+                if self._verbose:
+                    print(f'[CORE] 1. Does not unterstood, text={text}.')
+                self._persistence_service_call('startListening')
+                return
 
             if self._verbose:
                 print(f'[CORE] 1. Listened: {text}')
-
-            if (text == '' or text == 'ERR1' or text == 'ERR2'):
-                
-                return
-
-            # ______________________________________________________________________________
-            # 1.1   Stop background listening after a sentence was getted to avoid the issues 
-            #       of Pepper listen what it said itself.
-            rospy.wait_for_service('stopListening')
-            stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
-            _ = stopListeningFunc()
-
-            if self._verbose:
-                print('[CORE] 1.1. Stop Listening')
-
 
             # ______________________________________________________________________________
             # 2.    If the audio contains voice, we use getEmbedding to compute the 
             #       embedding of that audio and we add that in a buffer. 
 
-            rospy.wait_for_service('getEmbedding')
-            getEmbeddingFunc = rospy.ServiceProxy('getEmbedding', GetEmbedding)
-            getEmbeddingResp = getEmbeddingFunc(audio)
+            getEmbeddingResp = self._persistence_service_call('getEmbedding', audio)
             embedding = getEmbeddingResp.output
 
             # ______________________________________________________________________________
@@ -150,8 +203,7 @@ class CoreNode(object):
             # ______________________________________________________________________________
             #  3.1  Else try to get the label of the embedding previous computed.  
             else:
-                getLabelFunc = rospy.ServiceProxy('getLabel', GetLabel)
-                getLabelResp = getLabelFunc(embedding)
+                getLabelResp = self._persistence_service_call('getLabel', embedding)
                 label = getLabelResp.out_label.data
                 name = getLabelResp.out_name.data
 
@@ -174,9 +226,7 @@ class CoreNode(object):
                 self._buffer.put(embedding)
 
             else:  # known voice
-                rospy.wait_for_service('setEmbedding')
-                setEmbeddingFunc = rospy.ServiceProxy('setEmbedding', SetEmbedding)
-                _ = setEmbeddingFunc(embedding, Int16(label), String(name))
+                self._persistence_service_call('setEmbedding', embedding, Int16(label), String(name))
 
                 self._buffer.clear()
 
@@ -193,27 +243,26 @@ class CoreNode(object):
             if label != -1:
                 response_text, new_label, new_name = self._chatbot_interaction(text, name, label)
             else:
-                rospy.wait_for_service('nextLabel')
-                nextLabelFunc = rospy.ServiceProxy('nextLabel', NextLabel)
-                nextLabelResp = nextLabelFunc()
+                nextLabelResp = self._persistence_service_call('nextLabel')
                 next_label = nextLabelResp.out_label.data
-
                 response_text, new_label, new_name = self._chatbot_interaction(text, name, next_label)
 
             if self._verbose:
                 print(f'[CORE] 4. Chatbot: response={response_text}, name={new_name}, label={new_label}.')
 
+            # Chatbot response can come after a person go away, so we chech if the person is
+            # here (for example saying goodbye and walk away without wait for a response)
+            if not self._human_presence:
+                return
 
             # ______________________________________________________________________________
             # 5.    Set embedding if previously was unknown and now the name is provided by
             #       the chatbot. 
             
             if label == -1 and new_name != '':
-                rospy.wait_for_service('setEmbedding')
-                setEmbeddingFunc = rospy.ServiceProxy('setEmbedding', SetEmbedding)
-                
+            
                 while not self._buffer.isEmpty():
-                    setEmbeddingResp = setEmbeddingFunc(self._buffer.pop(), Int16(new_label), String(new_name))
+                    setEmbeddingResp = self._persistence_service_call('setEmbedding', self._buffer.pop(), Int16(new_label), String(new_name))
                     new_label = setEmbeddingResp.out_label.data
 
                 self._prev_label = new_label
@@ -225,52 +274,23 @@ class CoreNode(object):
 
             # ______________________________________________________________________________      
             # 6.    Speech2Text to reproduce the response as audio.
-
-            # ______________________________________________________________________________
-            # 6.1   Pepper start making speacking movement
-
+            #       Pepper start making speacking movement. After that we made pepper speak.
+            #       Finally pepper start moving for listening.
             if ON_PEPPER:
-                rospy.wait_for_service('responseMoving')
-                responseMovingFunc = rospy.ServiceProxy('responseMoving', ResponseMoving)
-                _ = responseMovingFunc()  
+                self._persistence_service_call('responseMoving') 
+                self._persistence_service_call('tts', response_text)
+                self._persistence_service_call('listeningMoving')
 
-            
-            if self._human_presence:
-            # ______________________________________________________________________________
-            # 6.2   We have to stop the listening before the robot talk because the microphone 
-            #       hear pepper and handle that sentence.
-
-                if ON_PEPPER:
-                    rospy.wait_for_service('tts')
-                    text2speechFunc = rospy.ServiceProxy('tts', Text2Speech)
-                    _ = text2speechFunc(response_text)
-
-                if self._verbose:
-                    print(f'[CORE] TTS: {response_text}')
+            if self._verbose:
+                print(f'[CORE] TTS: {response_text}')        
 
             # ______________________________________________________________________________
-            # 6.3   Pepper start listening, so we start listening movements
+            # 6.1   After Pepper has told, we restart the listening.
+            self._persistence_service_call('startListening')
 
-                if ON_PEPPER:
-                    rospy.wait_for_service('listeningMoving')
-                    listeningMovingFunc = rospy.ServiceProxy('listeningMoving', ListeningMoving)
-                    _ = listeningMovingFunc() 
-
-            # ______________________________________________________________________________
-            # 6.4   After Pepper has told, we restart the listening.
-
-                rospy.wait_for_service('startListening')
-                startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
-                _ = startListeningFunc()
-
-                if self._verbose:
-                    print('[CORE] 6.4. Start Listening')
 
         except rospy.ServiceException as e:
             print(f'[CORE] rospy.ServiceException. Service call failed: {e}')
-
-        except KeyboardInterrupt:
-            print('[CORE] Terminated bu user.')
 
         except Exception as e:
             print(f'[CORE] ERROR in execution: {e}')
@@ -291,18 +311,12 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: Human presence detected.')
 
-            rospy.wait_for_service('startListening')
-            startListeningFunc = rospy.ServiceProxy('startListening', StartListening)
-            _ = startListeningFunc()
-
-            if self._verbose:
-                print('[CORE] Handle Listening')
+            self._persistence_service_call('startListening')
 
             # Also, Pepper start moving for listening.
             if ON_PEPPER:            
-                rospy.wait_for_service('listeningMoving')
-                listeningMovingFunc = rospy.ServiceProxy('listeningMoving', ListeningMoving)
-                _ = listeningMovingFunc() 
+                self._persistence_service_call('listeningMoving')
+
         else:
             # In this state there is no human so we can disable the microphone and reset
             # the state of the application so that can restart when a new human come.
@@ -310,12 +324,7 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: There is not human anymore.')
 
-            rospy.wait_for_service('stopListening')
-            stopListeningFunc = rospy.ServiceProxy('stopListening', StopListening)
-            _ = stopListeningFunc()
-
-            if self._verbose:
-                print('[CORE] Non Handle Listening')
+            self._persistence_service_call('stopListening')
 
             self._prev_time = None
             self._prev_label = -1
@@ -329,9 +338,7 @@ class CoreNode(object):
 
             # Stop moving Pepper
             if ON_PEPPER:
-                rospy.wait_for_service('stopMoving')
-                stopFollowingFunc = rospy.ServiceProxy('stopMoving', StopMoving)
-                _ = stopFollowingFunc()
+                self._persistence_service_call('stopMoving')
 
     def _handle_shutdown(self):
         """On killing the application, stop all the service that can be running on 
@@ -342,17 +349,13 @@ class CoreNode(object):
             print('[CORE] Shutdown signal received. Stopping the application')
 
         if ON_PEPPER:
-            rospy.wait_for_service('stopFollowing')
-            stopFollowingFunc = rospy.ServiceProxy('stopFollowing', StopFollowing)
-            _ = stopFollowingFunc()
+            self._service_call('stopFollowing', StopFollowing)
+            self._persistence_service_call('stopMoving')
+            self._service_call('rest', Rest)
 
-            rospy.wait_for_service('stopMoving')
-            stopFollowingFunc = rospy.ServiceProxy('stopMoving', StopMoving)
-            _ = stopFollowingFunc()
-
-            rospy.wait_for_service('rest')
-            restFunc = rospy.ServiceProxy('rest', Rest)
-            _ = restFunc()
+            # Close all persistent service
+            for ps in self._persistent_services:
+                self._persistence_service_close(ps)
 
 
 if __name__ == "__main__":
