@@ -1,17 +1,18 @@
 #!/usr/bin/python3
 
 from config import *
+from fp_audio.srv import StartListening, StopListening
 import numpy as np
 import rospy
 import speech_recognition as sr
 from std_msgs.msg import Int16MultiArray
-from fp_audio.srv import StartListening, StopListening
+from threading import Lock
 
 
 class AudioDetected(object):
     """This class use py_audio to get audio wawe with a detection."""
 
-    def __init__(self, raw_audio_topic) -> None:
+    def __init__(self, raw_audio_topic, verbose=True) -> None:
         """Initialize an object containing the node who listen the audio from the robot and 
         implement an voice detection.
 
@@ -23,8 +24,13 @@ class AudioDetected(object):
         self._r = sr.Recognizer()
         # Audio source
         self._m = sr.Microphone(device_index=MICROPHONE_INDEX, sample_rate=RATE, chunk_size=CHUNK_SIZE)
+
+        # Mutex because this service can be called from multiple handler, so we need that 
+        # thread safe.
+        self._mutex = Lock()
         self._stop_listening_func = None
         self._running = False
+        self._verbose = verbose
     
     def start(self):
         """Start the node and calibrate the microphone to the local noise.
@@ -39,21 +45,36 @@ class AudioDetected(object):
 
     def startListening(self):
         """Calibrate the microphone with the ambient noise and start listening.
+        This method id thread-safe.
         """
+        self._mutex.acquire()
+
         if not self._running:
             self._running = True
             with self._m as source:
-                print("[T2S] Start calibrating...")
+
+                if self._verbose:
+                    print("[T2S] Start calibrating...")
+
                 self._r.adjust_for_ambient_noise(source, duration=CALIBRATION_TIME)
-                print("[T2S] Calibrating finished.")
+
+                if self._verbose:
+                    print("[T2S] Calibrating finished.")
 
             # Start background listening
             self._stop_listening_func = self._r.listen_in_background(self._m, self._listened_callback)
-            print("[T2S] Start listening")
+
+            if self._verbose:
+                print("[T2S] Start listening")
+
+        self._mutex.release()
 
     def stopListening(self):
         """Stop the listening from the microphone.
+        This method id thread-safe.
         """
+        self._mutex.acquire()
+
         if self._running:
             if self._stop_listening_func is not None:
                 self._stop_listening_func()
@@ -61,6 +82,8 @@ class AudioDetected(object):
                 print("[T2S] Stop listening")
 
             self._running = False
+        
+        self._mutex.release()
 
     def _listened_callback(self, recognizer, audio):
         """Callback function to the listen_in_background function.
