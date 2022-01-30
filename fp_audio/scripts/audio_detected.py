@@ -79,7 +79,8 @@ class AudioDetected(object):
             if self._stop_listening_func is not None:
                 self._stop_listening_func()
                 self._stop_listening_func = None
-                print("[T2S] Stop listening")
+                if self._verbose:
+                    print("[T2S] Stop listening")
 
             self._running = False
         
