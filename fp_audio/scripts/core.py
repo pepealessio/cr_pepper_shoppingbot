@@ -32,7 +32,7 @@ class CoreNode(object):
             service_name (str): the service name.
             service_srv (Module): the srv module.
         """
-        self._persistent_services[service_name] = (rospy.ServiceProxy(service_name, service_srv), service_srv)
+        self._persistent_services[service_name] = (rospy.ServiceProxy(service_name, service_srv, persistent=True), service_srv)
 
     def _persistence_service_call(self, service_name, *args):
         """Call a service with the provided arguments and return what the service provide.
