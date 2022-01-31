@@ -46,6 +46,8 @@ class AudioDetected(object):
     def startListening(self, req):
         """Calibrate the microphone with the ambient noise and start listening.
         """
+        data_to_send = Int16MultiArray()
+        
         with self._m as source:
             if self._verbose:
                 print("[T2S] Start calibrating...")
@@ -59,13 +61,13 @@ class AudioDetected(object):
                 print("[T2S] Start listened")
             audio = self._r.listen(source)
 
-            data_to_send = Int16MultiArray()
+            
             data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
 
             if self._verbose:
                 print("[T2S] Listened")
             
-            return data_to_send
+        return data_to_send
 
     # def stopListening(self):
     #     """Stop the listening from the microphone.

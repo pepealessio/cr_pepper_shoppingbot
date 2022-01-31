@@ -1,2 +1,2 @@
 ---
-string ack
+std_msgs/Int16MultiArray output
