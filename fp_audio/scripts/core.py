@@ -154,9 +154,9 @@ class CoreNode(object):
         Raise:
             rospy.ServiceException: if a service fail or it's not reachble.
         """
-        # self._mutex.acquire()
+        self._mutex.acquire()
         hp = self._human_presence
-        # self._mutex.release()
+        self._mutex.release()
 
         if not hp:
             return
@@ -178,9 +178,9 @@ class CoreNode(object):
                 if self._verbose:
                     print(f'[CORE] 1. Does not unterstood, text={text}.')
                 
-                # self._mutex.acquire()
+                self._mutex.acquire()
                 hp = self._human_presence
-                # self._mutex.release()
+                self._mutex.release()
                 if not hp:
                     self._persistence_service_call('startListening')
                 return
@@ -285,9 +285,9 @@ class CoreNode(object):
 
             # Chatbot response can come after a person go away, so we chech if the person is
             # here (for example saying goodbye and walk away without wait for a response)
-            # self._mutex.acquire()
+            self._mutex.acquire()
             hp = self._human_presence
-            # self._mutex.release()
+            self._mutex.release()
 
             if not hp:
                 return
@@ -323,9 +323,9 @@ class CoreNode(object):
         """
         # This variable contains True if an human is present, false if not. We can
         # assume if this function is running that state this value is just changed.
-        # self._mutex.acquire()
+        self._mutex.acquire()
         self._human_presence = presence.data
-        # self._mutex.release()
+        self._mutex.release()
 
         if presence.data:
             # In this state the microphone is enabled and consequentially all the 
