@@ -88,16 +88,6 @@ class CoreNode(object):
         rospy.Subscriber(HUMAN_PRESENCE_TOPIC, Bool, self._handle_tracking)
         rospy.on_shutdown(self._handle_shutdown)
 
-        # --- Pepper WakeUp & start following people
-        if ON_PEPPER:
-            if self._verbose:
-                print('[CORE] Pepper wakeup')
-            self._service_call('wakeup', WakeUp)
-
-            if self._verbose:
-                print('[CORE] Pepper startfollowing')
-            self._service_call('startFollowing', StartFollowing)
-
         # Init the persistent service proxy
         self._persistence_service_init('dialogue_server', Dialogue)
         self._persistence_service_init('getEmbedding', GetEmbedding)
@@ -111,6 +101,16 @@ class CoreNode(object):
         self._persistence_service_init('stopListening', StopListening)
         self._persistence_service_init('stopMoving', StopMoving)
         self._persistence_service_init('tts', Text2Speech)
+
+        # Pepper WakeUp & start following people
+        if ON_PEPPER:
+            if self._verbose:
+                print('[CORE] Pepper wakeup')
+            self._service_call('wakeup', WakeUp)
+
+            if self._verbose:
+                print('[CORE] Pepper startfollowing')
+            self._service_call('startFollowing', StartFollowing)
         
         if self._verbose:
             print('[CORE] Starting done.')
@@ -371,11 +371,6 @@ class CoreNode(object):
         """
         if self._verbose:
             print('[CORE] Shutdown signal received. Stopping the application')
-
-        if ON_PEPPER:
-            self._service_call('stopFollowing', StopFollowing)
-            self._persistence_service_call('stopMoving')
-            self._service_call('rest', Rest)
 
         # Close all persistent service
         for ps in self._persistent_services:
