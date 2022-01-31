@@ -165,7 +165,7 @@ class CoreNode(object):
             # ______________________________________________________________________________
             # 1.    Stop background listening after a sentence was getted to avoid the issues 
             #       of Pepper listen what it said itself.
-            self._persistence_service_call('stopListening')
+            # self._persistence_service_call('stopListening')
 
             # ______________________________________________________________________________
             # 1.1   Speech2Text to understand if there is noise or not in that audio.
@@ -348,7 +348,7 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: There is not human anymore.')
 
-            self._persistence_service_call('stopListening')
+            # self._persistence_service_call('stopListening')
 
             self._prev_time = None
             self._prev_label = -1

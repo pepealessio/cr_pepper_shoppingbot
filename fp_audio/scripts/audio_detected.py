@@ -28,8 +28,8 @@ class AudioDetected(object):
         # Mutex because this service can be called from multiple handler, so we need that 
         # thread safe.
         self._mutex = Lock()
-        self._stop_listening_func = None
-        self._running = False
+        # self._stop_listening_func = None
+        # self._running = False
         self._verbose = verbose
     
     def start(self):
@@ -37,7 +37,7 @@ class AudioDetected(object):
         """
         rospy.init_node('audio_detected_node', anonymous=True)
         rospy.Service('startListening', StartListening, self._handle_start_listening)
-        rospy.Service('stopListening', StopListening, self._handle_stop_listening)
+        # rospy.Service('stopListening', StopListening, self._handle_stop_listening)
 
         # self.startListening()
 
@@ -49,49 +49,50 @@ class AudioDetected(object):
         """
         self._mutex.acquire()
 
-        if not self._running:
-            self._running = True
-            with self._m as source:
+        
+        with self._m as source:
+            if self._verbose:
+                print("[T2S] Start calibrating...")
 
-                if self._verbose:
-                    print("[T2S] Start calibrating...")
-
-                self._r.adjust_for_ambient_noise(source, duration=CALIBRATION_TIME)
-
-                if self._verbose:
-                    print("[T2S] Calibrating finished.")
-
-            # Start background listening
-            self._stop_listening_func = self._r.listen_in_background(self._m, self._listened_callback)
+            self._r.adjust_for_ambient_noise(source, duration=CALIBRATION_TIME)
 
             if self._verbose:
-                print("[T2S] Start listening")
+                print("[T2S] Calibrating finished.")
+
+            audio = self._r.listen(source)
+
+            data_to_send = Int16MultiArray()
+            data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
+            self._publisher.publish(data_to_send)
+
+            if self._verbose:
+                print("[T2S] Listened")
 
         self._mutex.release()
 
-    def stopListening(self):
-        """Stop the listening from the microphone.
-        This method id thread-safe.
-        """
-        self._mutex.acquire()
+    # def stopListening(self):
+    #     """Stop the listening from the microphone.
+    #     This method id thread-safe.
+    #     """
+    #     self._mutex.acquire()
 
-        if self._running:
-            if self._stop_listening_func is not None:
-                self._stop_listening_func()
-                self._stop_listening_func = None
-                if self._verbose:
-                    print("[T2S] Stop listening")
+    #     if self._running:
+    #         if self._stop_listening_func is not None:
+    #             self._stop_listening_func()
+    #             self._stop_listening_func = None
+    #             if self._verbose:
+    #                 print("[T2S] Stop listening")
 
-            self._running = False
+    #         self._running = False
         
-        self._mutex.release()
+    #     self._mutex.release()
 
-    def _listened_callback(self, recognizer, audio):
-        """Callback function to the listen_in_background function.
-        """
-        data_to_send = Int16MultiArray()
-        data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
-        self._publisher.publish(data_to_send)
+    # def _listened_callback(self, recognizer, audio):
+    #     """Callback function to the listen_in_background function.
+    #     """
+    #     data_to_send = Int16MultiArray()
+    #     data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
+    #     self._publisher.publish(data_to_send)
 
     def _handle_start_listening(self, req):
         """Callback function for startListening service.
@@ -99,11 +100,11 @@ class AudioDetected(object):
         self.startListening()
         return "ACK"
 
-    def _handle_stop_listening(self, req):
-        """Callback function for stopListening service.
-        """
-        self.stopListening()
-        return "ACK"
+    # def _handle_stop_listening(self, req):
+    #     """Callback function for stopListening service.
+    #     """
+    #     self.stopListening()
+    #     return "ACK"
 
 
 if __name__ == "__main__":
