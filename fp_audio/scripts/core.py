@@ -181,7 +181,8 @@ class CoreNode(object):
                 self._mutex.acquire()
                 hp = self._human_presence
                 self._mutex.release()
-                if not hp:
+
+                if hp:
                     self._persistence_service_call('startListening')
                 return
 
