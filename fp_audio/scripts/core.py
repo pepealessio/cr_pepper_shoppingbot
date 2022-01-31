@@ -326,7 +326,6 @@ class CoreNode(object):
         # assume if this function is running that state this value is just changed.
         self._mutex.acquire()
         self._human_presence = presence.data
-        self._mutex.release()
 
         if self._human_presence:
             # In this state the microphone is enabled and consequentially all the 
@@ -363,6 +362,8 @@ class CoreNode(object):
             # Stop moving Pepper
             if ON_PEPPER:
                 self._persistence_service_call('stopMoving')
+
+        self._mutex.release()
 
     def _handle_shutdown(self):
         """On killing the application, stop all the service that can be running on 
