@@ -10,7 +10,6 @@ import numpy as np
 import os
 import pickle
 import rospy
-from scipy.io.wavfile import write
 from std_msgs.msg import Float32MultiArray, String, Int16
 from threading import Lock
 
@@ -88,9 +87,6 @@ class EmbeddingManager(object):
         """
         int_audio = np.array(req.input.data, dtype=np.int16)
         audio_data = int_audio.astype(np.float32, order='C') / 32768.0  # to float32
-
-        if SAVE_RAW_AUDIO:
-            write(os.path.join(REF_PATH, 'saved', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S")}.wav'), RATE, audio_data)
         
         mfcc = get_mfcc(audio_data, RATE)
 

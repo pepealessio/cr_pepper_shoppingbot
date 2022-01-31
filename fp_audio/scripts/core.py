@@ -4,9 +4,11 @@ from buffer import Buffer
 from config import *
 from datetime import datetime
 from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, StartListening, StopListening, NextLabel
+import numpy as np
 from ros_chatbot.srv import Dialogue
 from pepper_nodes.srv import Text2Speech, WakeUp, Rest, StartFollowing, StopFollowing, StopMoving, ListeningMoving, ResponseMoving
 import rospy
+from scipy.io.wavfile import write
 from std_msgs.msg import Int16MultiArray, String, Int16, Bool
 from threading import Lock
 
@@ -185,6 +187,11 @@ class CoreNode(object):
 
             if self._verbose:
                 print(f'[CORE] 1. Listened: {text}')
+
+            # This part is used just for save some audio to use in the tests from home.
+            if SAVE_RAW_AUDIO:
+                audio_data = np.array(audio.data).astype(np.float32, order='C') / 32768.0  # to float32
+                write(os.path.join(REF_PATH, 'saved_audio', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S")}.wav'), RATE, audio_data)
 
             # ______________________________________________________________________________
             # 2.    If the audio contains voice, we use getEmbedding to compute the 
