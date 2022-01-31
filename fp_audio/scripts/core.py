@@ -8,6 +8,7 @@ from ros_chatbot.srv import Dialogue
 from pepper_nodes.srv import Text2Speech, WakeUp, Rest, StartFollowing, StopFollowing, StopMoving, ListeningMoving, ResponseMoving
 import rospy
 from std_msgs.msg import Int16MultiArray, String, Int16, Bool
+from threading import Lock
 
 
 class CoreNode(object):
@@ -18,6 +19,7 @@ class CoreNode(object):
         """
         self._buffer = Buffer(max_size=MAX_EMBEDDING_PER_LABEL)
         self._human_presence = False
+        self._mutex = Lock()
         self._persistent_services = dict()  # dict str -> Touple[func, module]
         self._prev_time = None
         self._prev_label = -1
@@ -61,7 +63,6 @@ class CoreNode(object):
             self._persistent_services[service_name][0].close()
         except rospy.ServiceException:
             pass
-        del self._persistent_services[service_name]
 
     def _service_call(self, service_name, service_srv, *args):
         """Call a service whitout use a persistent connection.
@@ -151,9 +152,12 @@ class CoreNode(object):
         Raise:
             rospy.ServiceException: if a service fail or it's not reachble.
         """
+        # self._mutex.acquire()
+        hp = self._human_presence
+        # self._mutex.release()
 
-        # if not self._human_presence:
-        #     return
+        if not hp:
+            return
 
         try:
             # ______________________________________________________________________________
@@ -171,7 +175,12 @@ class CoreNode(object):
             if (text == '' or text == 'ERR1' or text == 'ERR2'):
                 if self._verbose:
                     print(f'[CORE] 1. Does not unterstood, text={text}.')
-                self._persistence_service_call('startListening')
+                
+                # self._mutex.acquire()
+                hp = self._human_presence
+                # self._mutex.release()
+                if not hp:
+                    self._persistence_service_call('startListening')
                 return
 
             if self._verbose:
@@ -250,10 +259,6 @@ class CoreNode(object):
             if self._verbose:
                 print(f'[CORE] 4. Chatbot: response={response_text}, name={new_name}, label={new_label}.')
 
-            # Chatbot response can come after a person go away, so we chech if the person is
-            # here (for example saying goodbye and walk away without wait for a response)
-            if not self._human_presence:
-                return
 
             # ______________________________________________________________________________
             # 5.    Set embedding if previously was unknown and now the name is provided by
@@ -270,6 +275,15 @@ class CoreNode(object):
                 
                 if self._verbose:
                     print(f'[CORE] 5. Setted label={new_label} and name={new_name}')
+
+            # Chatbot response can come after a person go away, so we chech if the person is
+            # here (for example saying goodbye and walk away without wait for a response)
+            # self._mutex.acquire()
+            hp = self._human_presence
+            # self._mutex.release()
+
+            if not hp:
+                return
 
 
             # ______________________________________________________________________________      
@@ -302,9 +316,11 @@ class CoreNode(object):
         """
         # This variable contains True if an human is present, false if not. We can
         # assume if this function is running that state this value is just changed.
+        # self._mutex.acquire()
         self._human_presence = presence.data
+        # self._mutex.release()
 
-        if self._human_presence:
+        if presence.data:
             # In this state the microphone is enabled and consequentially all the 
             # application work.
 
@@ -353,9 +369,9 @@ class CoreNode(object):
             self._persistence_service_call('stopMoving')
             self._service_call('rest', Rest)
 
-            # Close all persistent service
-            for ps in self._persistent_services:
-                self._persistence_service_close(ps)
+        # Close all persistent service
+        for ps in self._persistent_services:
+            self._persistence_service_close(ps)
 
 
 if __name__ == "__main__":
