@@ -4,9 +4,11 @@ from buffer import Buffer
 from config import *
 from datetime import datetime
 from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, StartListening, StopListening, NextLabel
+from gtts import gTTS
 import numpy as np
 from ros_chatbot.srv import Dialogue
 from pepper_nodes.srv import Text2Speech, WakeUp, Rest, StartFollowing, StopFollowing, StopMoving, ListeningMoving, ResponseMoving
+from playsound import playsound
 import rospy
 from scipy.io.wavfile import write
 from std_msgs.msg import Int16MultiArray, String, Int16, Bool
@@ -302,7 +304,12 @@ class CoreNode(object):
                 self._persistence_service_call('responseMoving') 
                 self._persistence_service_call('tts', response_text)
                 self._persistence_service_call('listeningMoving')
-
+            else:
+                to_speak = gTTS(text=response_text, lang=LANGUAGE, slow=False)
+                to_speak.save("temp.wav")
+                playsound("temp.wav")
+                os.remove("temp.wav")
+            
             if self._verbose:
                 print(f'[CORE] TTS: {response_text}')        
 

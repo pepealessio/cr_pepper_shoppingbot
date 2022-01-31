@@ -14,7 +14,7 @@ vid = cv2.VideoCapture(0)
 
 
 def talker():
-    pub = rospy.Publisher(VIDEO_TOPIC, Image, queue_size=0)
+    pub = rospy.Publisher(VIDEO_TOPIC, Image, queue_size=None)
     rospy.init_node('talker', anonymous=True)
 
     # set here the Rate in Hz
