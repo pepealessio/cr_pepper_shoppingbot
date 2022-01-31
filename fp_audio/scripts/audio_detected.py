@@ -19,7 +19,7 @@ class AudioDetected(object):
         Args:
             raw_audio_topic (str): The name of the topic on which the audio must be published.
         """
-        self._publisher = rospy.Publisher(raw_audio_topic, Int16MultiArray, queue_size=0)
+        self._publisher = rospy.Publisher(raw_audio_topic, Int16MultiArray, queue_size=None)
         # Initialize a Recognizer
         self._r = sr.Recognizer()
         # Audio source
@@ -49,7 +49,6 @@ class AudioDetected(object):
         """
         self._mutex.acquire()
 
-        
         with self._m as source:
             if self._verbose:
                 print("[T2S] Start calibrating...")
@@ -59,6 +58,8 @@ class AudioDetected(object):
             if self._verbose:
                 print("[T2S] Calibrating finished.")
 
+            if self._verbose:
+                print("[T2S] Start listened")
             audio = self._r.listen(source)
 
             data_to_send = Int16MultiArray()
