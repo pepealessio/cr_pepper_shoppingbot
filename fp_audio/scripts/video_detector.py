@@ -33,8 +33,8 @@ class VideoDetector(object):
         # Obtain a frame from the rospy message
         frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
 
-        if ON_PEPPER:
-            frame = frame[:,:,::-1]
+        # if ON_PEPPER:
+        #     frame = frame[:,:,::-1]
 
         if SAVE_RAW_FRAME:
             cv2.imwrite(os.path.join(REF_PATH, 'saved_imgs', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S.%f")}.jpeg'), frame)

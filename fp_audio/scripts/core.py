@@ -328,7 +328,7 @@ class CoreNode(object):
         self._human_presence = presence.data
         self._mutex.release()
 
-        if presence.data:
+        if self._human_presence:
             # In this state the microphone is enabled and consequentially all the 
             # application work.
 
