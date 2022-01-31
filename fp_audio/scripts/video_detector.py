@@ -2,7 +2,9 @@
 
 from config import *
 import cv2
+from datetime import datetime
 import numpy as np
+import os
 import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool
@@ -30,6 +32,12 @@ class VideoDetector(object):
         This method is thread-safe."""
         # Obtain a frame from the rospy message
         frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+
+        if ON_PEPPER:
+            frame = frame[:,:,::-1]
+
+        if SAVE_RAW_FRAME:
+            cv2.imwrite(os.path.join(REF_PATH, 'saved_imgs', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S.%f")}.jpeg'), frame)
        
         # Transform the image in a blob
         imageBlob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0), swapRB=False, crop=False)
