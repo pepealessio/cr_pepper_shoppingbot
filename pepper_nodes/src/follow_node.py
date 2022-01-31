@@ -21,9 +21,12 @@ class FollowingNode:
         # self._sub_list = []
 
     def start(self):
+        """Start the node.
+        """
         rospy.init_node("follow_node")      
         rospy.Service("startFollowing", StartFollowing, self._handle_start_following)
         rospy.Service("stopFollowing", StopFollowing, self._handle_stop_following)
+        rospy.on_shutdown(self._handle_shutdown)
 
         # self._register_callback("ALBasicAwareness/HumanTracked", self._handle_human_tracked)
         # self._register_callback("ALBasicAwareness/HumanLost", self._handle_human_lost)
@@ -31,6 +34,14 @@ class FollowingNode:
         rospy.spin()
 
     def _handle_start_following(self, req):
+        """Start the following head service
+
+        Args:
+            req (any): the request (in this case is empty)
+
+        Returns:
+            std_msgs/string: ack
+        """
         try:
             self.ba_service.setEnabled(True)
         except:
@@ -39,12 +50,30 @@ class FollowingNode:
         return "ACK"
 
     def _handle_stop_following(self, req):
+        """Stop the following head service.
+
+        Args:
+            req (any): The request (in this case is empty)
+
+        Returns:
+            std_msgs/string: ack
+        """
         try:
             self.ba_service.setEnabled(False)
         except:
             self.ba_service  = ALProxy("ALBasicAwareness", self.ip, self.port)
             self.ba_service.setEnabled(False)
         return "ACK" 
+
+    def _handle_shutdown(self):
+        """On shutdown stop the following head service.
+        """
+        try:
+            self.ba_service.setEnabled(False)
+        except:
+            self.ba_service  = ALProxy("ALBasicAwareness", self.ip, self.port)
+            self.ba_service.setEnabled(False)
+
     
     # def _register_callback(self, event_name, callback):
     #     try:

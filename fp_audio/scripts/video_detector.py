@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 from config import *
+import cv2
+from datetime import datetime
+import numpy as np
+import os
 import rospy
 from sensor_msgs.msg import Image
-import cv2
-import numpy as np
 from std_msgs.msg import Bool
+from threading import Lock
 
 
 class VideoDetector(object):
@@ -22,17 +25,28 @@ class VideoDetector(object):
         self._curr_state = False
         self._change_state_count = 0
 
+        self._mutex_net = Lock()
+
     def _handle_frame(self, msg):
-        """Callback function. Receive an image and use a detector to verify if almost one faces is in the image."""
+        """Callback function. Receive an image and use a detector to verify if almost one faces is in the image.
+        This method is thread-safe."""
         # Obtain a frame from the rospy message
         frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+
+        if ON_PEPPER:
+            frame = frame[:,:,::-1]
+
+        if SAVE_RAW_FRAME:
+            cv2.imwrite(os.path.join(REF_PATH, 'saved_imgs', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S.%f")}.jpeg'), frame)
        
         # Transform the image in a blob
         imageBlob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0), swapRB=False, crop=False)
         
         # Make the prediction
+        self._mutex_net.acquire()
         self._detector.setInput(imageBlob)
         detections = self._detector.forward()
+        self._mutex_net.release()
         
         # we ensure to have at least one face
         if len(detections) > 0:

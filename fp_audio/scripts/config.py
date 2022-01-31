@@ -7,7 +7,7 @@ CALIBRATION_TIME = 0.2
 
 # Flag: if False, the working of the chatbot will be simulated with the command line.
 # -- In the use must be True.
-CHATBOT_RUNNING = True
+CHATBOT_RUNNING = False
 
 # Size of the time window for the computation of the mel spectrogram
 # -- 1024 is good for the pepper microphone
@@ -47,7 +47,11 @@ ON_PEPPER = False
 
 # If true, the raw audio will be saved in a folder. We used that to made test at home.
 # -- In the use must be False (to improve the fastness).
-SAVE_RAW_AUDIO = False
+SAVE_RAW_AUDIO = True
+
+# If true, all the frame from the camera will be saved to make test at home.
+# -- In the use must be False (to improve the fastness).
+SAVE_RAW_FRAME = True
 
 # Audio sample rate
 # -- 16000 Good for the pepper microphone

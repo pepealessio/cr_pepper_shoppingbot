@@ -1,19 +1,17 @@
 #!/usr/bin/python3
 
 from config import *
-import rospy
-from std_msgs.msg import Float32MultiArray, String, Int16
-import numpy as np
-import pickle
-import os
+from datetime import datetime
 from fp_audio.srv import GetEmbedding, GetEmbeddingResponse, SetEmbedding, SetEmbeddingResponse, GetLabel, GetLabelResponse, NextLabel, NextLabelResponse
-
 from identification.deep_speaker.audio import get_mfcc
 from identification.deep_speaker.model import get_deep_speaker
 from identification.utils import batch_cosine_similarity, dist2id
-
-from scipy.io.wavfile import write
-from datetime import datetime
+import numpy as np
+import os
+import pickle
+import rospy
+from std_msgs.msg import Float32MultiArray, String, Int16
+from threading import Lock
 
 
 class EmbeddingManager(object):
@@ -24,6 +22,9 @@ class EmbeddingManager(object):
         similarity distance between the various embeddings.
         """
         self._model = get_deep_speaker(os.path.join(REF_PATH, 'audio_embedding_model', 'deep_speaker.h5'))
+
+        self._mutex_data = Lock()
+        self._mutex_net = Lock()
 
     def _load_data(self):
         """Try to load saved data and if there not exist, create a new empty data structure.
@@ -37,24 +38,33 @@ class EmbeddingManager(object):
                             2 : 'teresa,
                         }
         }
+
+        
+        Returns:
+            Dict: the dictionary with the data.
         """
         try:
             with open(os.path.join(REF_PATH, DATA_FILENAME), 'rb') as fh:
-                self._data = pickle.load(fh)
+                data = pickle.load(fh)
         except Exception as e:
-            self._data = dict()
-            self._data['X'] = list()
-            self._data['y'] = list()
-            self._data['y2name'] = dict()
+            data = dict()
+            data['X'] = list()
+            data['y'] = list()
+            data['y2name'] = dict()
+        return data
     
-    def _store_data(self):
+    def _store_data(self, data):
         """Save the data in a file.
+
+
+        Args:
+            data (dict): The dictionary containing all the data.
         """
         try:
             with open(os.path.join(REF_PATH, DATA_FILENAME), 'wb') as fh:
-                pickle.dump(self._data, fh)
+                pickle.dump(data, fh)
         except:
-            print("error in store")
+            print("[RE-IDENTIFICATION] Can't save the state.")
 
     def start(self):
         """Initialize the node and start the services provided by this node.
@@ -69,18 +79,21 @@ class EmbeddingManager(object):
     def _handle_get_embedding(self, req):
         """Callback function of GetEmbedding Service. That recive an audio, compute 
         the embedding using a NN and return that.
+        This method is thread-safe.
+
 
         Args:
             req: The input of the request.
         """
         int_audio = np.array(req.input.data, dtype=np.int16)
         audio_data = int_audio.astype(np.float32, order='C') / 32768.0  # to float32
-
-        if SAVE_RAW_AUDIO:
-            write(os.path.join(REF_PATH, 'saved', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S")}.wav'), RATE, audio_data)
         
         mfcc = get_mfcc(audio_data, RATE)
+
+        self._mutex_net.acquire()
         embedding = self._model.predict(np.expand_dims(mfcc, 0))
+        self._mutex_net.release()
+
         embedding = embedding[0].tolist()
 
         to_return = Float32MultiArray()
@@ -91,6 +104,8 @@ class EmbeddingManager(object):
     def _handle_set_embedding(self, req):
         """Callback function of SetEmbedding Service. That recive an embedding and a label 
         and save this association.
+        This method is thread-safe.
+        
 
         Args:
             req: The input of the request.
@@ -101,21 +116,24 @@ class EmbeddingManager(object):
         label = req.in_label.data
 
         # Load data from file
-        self._load_data()
+        self._mutex_data.acquire()
+        data = self._load_data()
 
         # If label exist use that label, otherwise set a new label and
         # associate the name at that.
-        unique, counts = np.unique(self._data['y'], return_counts=True)
+        unique, counts = np.unique(data['y'], return_counts=True)
         label_count = dict(zip(unique, counts))
 
-        if label not in self._data['y2name']:
+        if label not in data['y2name']:
             label = len(unique) + 1
-            self._data['y2name'][label] = name
+            data['y2name'][label] = name
 
         if (label not in label_count or label_count[label] <= MAX_EMBEDDING_PER_LABEL):
-            self._data['X'].append(embedding)
-            self._data['y'].append(label)
-            self._store_data()
+            data['X'].append(embedding)
+            data['y'].append(label)
+            self._store_data(data)
+        
+        self._mutex_data.release()
 
         # print(f"[Re-Identification] Setting an embedding with label {label} .")
 
@@ -124,38 +142,45 @@ class EmbeddingManager(object):
     def _handle_get_label(self, req):
         """Callback function of GetLabel Service. That recive an embedding and get a label 
         if that voice is known (or an empty label).
+        This method is thread-safe.
+
 
         Args:
             req: The input of the request.
         """
         embedding = np.array([req.in_embedding.data], dtype=np.float32)
 
-        self._load_data()
+        self._mutex_data.acquire()
+        data = self._load_data()
+        self._mutex_data.release()
 
-        if len(self._data['X']) > 0:
+        if len(data['X']) > 0:
             # Distance between the sample and the support set
-            rep_embedding = np.repeat(embedding, len(self._data['X']), 0)
-            cosine_dist = batch_cosine_similarity(np.array(self._data['X']), rep_embedding)
+            rep_embedding = np.repeat(embedding, len(data['X']), 0)
+            cosine_dist = batch_cosine_similarity(np.array(data['X']), rep_embedding)
             # Matching
-            label = dist2id(cosine_dist, self._data['y'], REID_TH, mode='avg')
+            label = dist2id(cosine_dist, data['y'], REID_TH, mode='avg')
         
-        if len(self._data['X']) == 0 or label is None:
+        if len(data['X']) == 0 or label is None:
             label = -1
             name = ''
         else:
-            name = self._data['y2name'][label]
+            name = data['y2name'][label]
 
         return GetLabelResponse(Int16(label), String(name))
 
     def _handle_next_label(self, req):
         """Callback function for NextLabel Service. Return the label that will be assigned
         to the next identity.
+        This method is thread-safe.
         """
-        self._load_data()
+        self._mutex_data.acquire()
+        data = self._load_data()
+        self._mutex_data.release()
 
-        unique = np.unique(self._data['y'])
+        unique = np.unique(data['y'])
         next_label = len(unique) + 1
-
+        
         return NextLabelResponse(Int16(next_label))
 
 

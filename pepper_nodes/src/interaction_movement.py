@@ -14,13 +14,21 @@ class MovingNode:
         self.speacking_movevent = ALProxy("ALSpeakingMovement", ip, port)
 
     def start(self):
+        """Start the node.
+        """
         rospy.init_node("follow_node")      
         rospy.Service("stopMoving", StopMoving, self._handle_stop_moving)
         rospy.Service("listeningMoving", ListeningMoving, self._handle_listening_moving)
         rospy.Service("responseMoving", ResponseMoving, self._handle_response_moving)
+        rospy.on_shutdown(self._handle_shutdown)
         rospy.spin()
 
     def _set_listening_moving(self, onOff):
+        """Set the state of listening movement
+
+        Args:
+            onOff (bool): True if activated, otherwise False
+        """
         try:
             self.listening_movevent.setEnabled(onOff)
         except:
@@ -28,6 +36,11 @@ class MovingNode:
             self.listening_movevent.setEnabled(onOff)
 
     def _set_speacking_moving(self, onOff):
+        """Set the state of speacking movement
+
+        Args:
+            onOff (bool): True if activated, otherwise False
+        """
         try:
             self.speacking_movevent.setEnabled(onOff)
         except:
@@ -35,19 +48,49 @@ class MovingNode:
             self.speacking_movevent.setEnabled(onOff)
 
     def _handle_stop_moving(self, req):
+        """Handler for stop moving requests
+
+        Args:
+            req (any): The request (in this case is empty)
+
+        Returns:
+            std_msgs/string: ack
+        """
         self._set_listening_moving(False)
         self._set_speacking_moving(False)
         return "ACK" 
 
     def _handle_listening_moving(self, req):
+        """Handler for start listening moving requests
+
+        Args:
+            req (any): The request (in this case is empty)
+
+        Returns:
+            std_msgs/string: ack
+        """
         self._set_listening_moving(True)
         self._set_speacking_moving(False)
         return "ACK" 
     
     def _handle_response_moving(self, req):
+        """Handler for start response moving requests
+
+        Args:
+            req (any): The request (in this case is empty)
+
+        Returns:
+            std_msgs/string: ack
+        """
         self._set_listening_moving(False)
         self._set_speacking_moving(True)
         return "ACK"
+
+    def _handle_shutdown(self):
+        """Handler for rospy shutdown.
+        """
+        self._set_listening_moving(False)
+        self._set_speacking_moving(False)
     
 
 if __name__ == "__main__":

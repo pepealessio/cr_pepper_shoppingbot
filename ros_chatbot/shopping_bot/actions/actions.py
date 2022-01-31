@@ -79,7 +79,7 @@ class ActionShow(Action):
                 v = data[k]
                 text += str(v) + " " + k +  "," 
 
-            text = text[:-2]      
+            text = text[:-1]      
         else:
             text = "Your shopping list is empty!"      
         
