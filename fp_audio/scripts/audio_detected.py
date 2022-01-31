@@ -36,18 +36,19 @@ class AudioDetected(object):
         """Start the node and calibrate the microphone to the local noise.
         """
         rospy.init_node('audio_detected_node', anonymous=True)
-        rospy.Service('startListening', StartListening, self.startListening)
+        rospy.Service('startListening', StartListening, self._handle_start_listening)
         # rospy.Service('stopListening', StopListening, self._handle_stop_listening)
 
         # self.startListening()
 
         rospy.spin()
 
-    def startListening(self, req):
+    def startListening(self):
         """Calibrate the microphone with the ambient noise and start listening.
+        This method id thread-safe.
         """
-        data_to_send = Int16MultiArray()
-        
+        self._mutex.acquire()
+
         with self._m as source:
             if self._verbose:
                 print("[T2S] Start calibrating...")
@@ -61,13 +62,14 @@ class AudioDetected(object):
                 print("[T2S] Start listened")
             audio = self._r.listen(source)
 
-            
+            data_to_send = Int16MultiArray()
             data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
+            self._publisher.publish(data_to_send)
 
             if self._verbose:
                 print("[T2S] Listened")
-            
-        return data_to_send
+
+        self._mutex.release()
 
     # def stopListening(self):
     #     """Stop the listening from the microphone.
@@ -93,11 +95,11 @@ class AudioDetected(object):
     #     data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
     #     self._publisher.publish(data_to_send)
 
-    # def _handle_start_listening(self, req):
-    #     """Callback function for startListening service.
-    #     """
-    #     self.startListening()
-    #     return "ACK"
+    def _handle_start_listening(self, req):
+        """Callback function for startListening service.
+        """
+        self.startListening()
+        return "ACK"
 
     # def _handle_stop_listening(self, req):
     #     """Callback function for stopListening service.
