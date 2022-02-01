@@ -7,7 +7,7 @@ CALIBRATION_TIME = 0.2
 
 # Flag: if False, the working of the chatbot will be simulated with the command line.
 # -- In the use must be True.
-CHATBOT_RUNNING = False
+CHATBOT_RUNNING = True
 
 # Size of the time window for the computation of the mel spectrogram
 # -- 1024 is good for the pepper microphone
@@ -24,7 +24,7 @@ DATA_FILENAME = 'embeddings_data.pk'
 FACE_MIN_DETECTION_CONFIDENCE = 0.7
 
 # The maximum number of frame with different state before changing that
-HUMAN_PRESENCE_GHOST_FRAME = 10
+HUMAN_PRESENCE_GHOST_FRAME = 7
 
 # Topic in witch a std_msgs/Bool will be published if an human is present or not. 
 HUMAN_PRESENCE_TOPIC = '/track/human_presence'
@@ -66,6 +66,10 @@ REF_PATH = os.path.dirname(os.path.abspath(__file__))
 # Value in [0, 1] representing the audio re-identification threshold.
 # -- This parameter (0.65) seems working with 4 people.
 REID_TH = 0.65  
+
+# The fps published by the image publisher. This must be replicated in 
+# pepper_nodes
+VIDEO_FPS = 10
 
 # Topin on which will be published the image received by the Pepper camera
 VIDEO_TOPIC = '/in_rgb'
