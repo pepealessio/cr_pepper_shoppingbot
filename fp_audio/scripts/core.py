@@ -3,11 +3,11 @@
 from buffer import Buffer
 from config import *
 from datetime import datetime
-from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, StartListening, StopListening, NextLabel
+from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, StartListening, NextLabel
 from gtts import gTTS
 import numpy as np
 from ros_chatbot.srv import Dialogue
-from pepper_nodes.srv import Text2Speech, WakeUp, Rest, StartFollowing, StopFollowing, StopMoving, ListeningMoving, ResponseMoving
+from pepper_nodes.srv import Text2Speech, WakeUp, StartFollowing, ListeningMoving, ResponseMoving
 from playsound import playsound
 import rospy
 from scipy.io.wavfile import write
@@ -100,8 +100,6 @@ class CoreNode(object):
         self._persistence_service_init('responseMoving', ResponseMoving)
         self._persistence_service_init('setEmbedding', SetEmbedding)
         self._persistence_service_init('startListening', StartListening)
-        self._persistence_service_init('stopListening', StopListening)
-        self._persistence_service_init('stopMoving', StopMoving)
         self._persistence_service_init('tts', Text2Speech)
 
         # Pepper WakeUp & start following people

@@ -62,7 +62,6 @@ add_service_files(
   SetEmbedding.srv
   GetLabel.srv
   StartListening.srv
-  StopListening.srv
   NextLabel.srv
 )
 
