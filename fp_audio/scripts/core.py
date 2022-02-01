@@ -29,7 +29,6 @@ class CoreNode(object):
         self._prev_time = None
         self._prev_label = -1
         self._prev_name = ''
-        self._listen_last_state = ''
 
         self._verbose = verbose
 
@@ -209,11 +208,9 @@ class CoreNode(object):
                 print(f'[CORE] 1. Does not unterstood, text={text}.')
             
             self._mutex.acquire()
-            if self._listen_last_state.ack != 'timeout':
-                self._t2s("I don't understood.")
-
             if self._human_presence:
-                self._listen_last_state = self._persistence_service_call('startListening')
+                self._t2s("I don't understood.")
+                self._persistence_service_call('startListening')
             self._mutex.release()
             return
 
@@ -334,7 +331,7 @@ class CoreNode(object):
         # ______________________________________________________________________________
         # 6.1   After Pepper has told, we restart the listening.
         self._mutex.acquire()
-        self._listen_last_state = self._persistence_service_call('startListening')
+        self._persistence_service_call('startListening')
         self._mutex.release()
 
     def _handle_tracking(self, presence):
@@ -358,7 +355,7 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: Human presence detected.')
 
-            self._listen_last_state = self._persistence_service_call('startListening')
+            self._persistence_service_call('startListening')
 
             # Also, Pepper start moving for listening.
             if ON_PEPPER:            
