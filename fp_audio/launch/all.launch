@@ -1,5 +1,5 @@
 <launch>
-    <arg name="node_start_delay" default="90.0" /> 
+    <arg name="node_start_delay" default="60.0" /> 
     <arg name="nao_ip" default="$(optenv NAO_IP 10.0.1.230)" />
     <arg name="nao_port" default="$(optenv NAO_PORT 9559)" />
 

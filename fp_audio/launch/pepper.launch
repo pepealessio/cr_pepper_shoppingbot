@@ -2,16 +2,9 @@
     <arg name="nao_ip" default="$(optenv NAO_IP 10.0.1.230)" />
     <arg name="nao_port" default="$(optenv NAO_PORT 9559)" />
 
-    <node pkg="fp_audio" type="audio_detected.py" name="audio_detected" output="screen"/>
-    <node pkg="fp_audio" type="speech2text.py" name="speech2text" output="screen"/>
-    <node pkg="fp_audio" type="reidentification.py" name="reidentification" output="screen"/>
-    <node pkg="fp_audio" type="video_detector.py" name="video_detector" output="screen"/>
-    <node pkg="fp_audio" type="core.py" name="core" output="screen"/>
-
     <node pkg="pepper_nodes" type="text2speech_node.py" name="text2speech" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
     <node pkg="pepper_nodes" type="image_input_node.py" name="image_input_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
     <node pkg="pepper_nodes" type="wakeup_node.py" name="wakeup_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
     <node pkg="pepper_nodes" type="follow_node.py" name="follow_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
     <node pkg="pepper_nodes" type="interaction_movement.py" name="interaction_movement" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
-
 </launch>
