@@ -61,22 +61,27 @@ class AudioDetected(object):
         with self._m as source:
             self._r.adjust_for_ambient_noise(source, duration=CALIBRATION_TIME)
 
+            data_to_send = Int16MultiArray()
+
             if self._verbose:
                 print("[T2S] Start listened")
-            audio = self._r.listen(source)
-
-            data_to_send = Int16MultiArray()
-            data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
+            try:
+                audio = self._r.listen(source, timeout=5)
+                data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
+                if self._verbose:
+                    print("[T2S] Listened")
+            except sr.WaitTimeoutError:
+                if self._verbose:
+                    print("[T2S] Timeout")
+                data_to_send.data = b'\x00 \x00'
+            
             self._publisher.publish(data_to_send)
-
-            if self._verbose:
-                print("[T2S] Listened")
 
         self._mutex.acquire()
         self._running = False
         self._mutex.release()
 
-        return "listened"
+        return "ack"
 
 
 if __name__ == "__main__":
