@@ -1,0 +1,98 @@
+
+1.1
+
+-Alex in
+Hello
+my name is
+Insert 10 oranges
+thank you
+Goodbye
+-Alex out
+
+1.2
+
+-Alex in
+Hello
+can u show my list
+-Alex out
+
+---------------------------
+
+2.1 
+
+- Eveline in
+Hi 
+my name is
+show my list
+insert bananas in my list 
+five
+thank you
+bye
+- Eveline out
+
+
+2.2
+
+- Tony in
+Good morning
+my name is
+show my list
+insert 2 watermelon in my list 
+bye
+- Tony out
+
+2.3
+
+- Eveline in
+Hi 
+show my list
+remove 1 banana
+- Eveline out
+
+2.2
+
+- Tony in
+Good Morning
+show my list
+thank you
+- Tony out
+
+-------------------------
+
+3.1 
+
+- Giusy in
+Good Evening
+my name is
+Add some pineapples in my list
+11
+show my list
+thank youbye bye
+- Giusy out
+
+3.2
+
+-Alex in
+Hello
+can u show my list
+-Alex out
+
+3.3
+
+-Eveline in
+Hello
+can u show my list
+-Eveline out
+
+3.4
+
+-Tony in
+Hello
+can u show my list
+-Tony out
+
+3.5
+-Giusy in
+Hello
+can u show my list
+-Giusy out
