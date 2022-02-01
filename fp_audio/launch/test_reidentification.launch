@@ -1,0 +1,5 @@
+<launch>
+    <arg name="node_start_delay" default="5.0" /> 
+    <node pkg="fp_audio" type="reidentification.py" name="reidentification" output="screen"/>
+    <node pkg="fp_audio" type="reidentification_test.py" name="test_reidentification" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+</launch>

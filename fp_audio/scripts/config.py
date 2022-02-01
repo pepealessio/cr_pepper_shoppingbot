@@ -7,7 +7,7 @@ CALIBRATION_TIME = 0.2
 
 # Flag: if False, the working of the chatbot will be simulated with the command line.
 # -- In the use must be True.
-CHATBOT_RUNNING = True
+CHATBOT_RUNNING = False
 
 # Size of the time window for the computation of the mel spectrogram
 # -- 1024 is good for the pepper microphone
@@ -39,19 +39,19 @@ MAX_EMBEDDING_PER_LABEL = 6
 
 # pyAudio microphone idex. That need to be changed basing on the device. 
 # -- On my VM, if i connect microphone directly to VM this is 2.
-MICROPHONE_INDEX = 2
+MICROPHONE_INDEX = None
 
 # Flag: If False, the services who need Pepper are not called. Useful for debug.
 # -- In the use must be True.
-ON_PEPPER = True
+ON_PEPPER = False
 
 # If true, the raw audio will be saved in a folder. We used that to made test at home.
 # -- In the use must be False (to improve the fastness).
-SAVE_RAW_AUDIO = True
+SAVE_RAW_AUDIO = False
 
 # If true, all the frame from the camera will be saved to make test at home.
 # -- In the use must be False (to improve the fastness).
-SAVE_RAW_FRAME = True
+SAVE_RAW_FRAME = False
 
 # Audio sample rate
 # -- 16000 Good for the pepper microphone
