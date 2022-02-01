@@ -121,6 +121,7 @@ class DialogueServer:
         rospy.init_node('dialogue_service')
         rospy.Service('dialogue_server', Dialogue, self._handle_dialogue)
         rospy.logdebug('Dialogue server READY.')
+        print('[CHATBOT INTERFACE] ready.')
         rospy.spin()
     
 if "__main__" == __name__:
