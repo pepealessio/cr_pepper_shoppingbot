@@ -5,8 +5,6 @@ import cv2
 import rospy
 import ros_numpy
 from sensor_msgs.msg import Image
-import sys
-import os
 
 
 # Acquire the camera
@@ -18,7 +16,7 @@ def talker():
     rospy.init_node('talker', anonymous=True)
 
     # set here the Rate in Hz
-    rate = rospy.Rate(5)
+    rate = rospy.Rate(VIDEO_FPS)
 
     while not rospy.is_shutdown():
         # Read a frame from the webcam
