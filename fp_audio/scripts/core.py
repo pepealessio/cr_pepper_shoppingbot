@@ -28,6 +28,7 @@ class CoreNode(object):
         self._prev_time = None
         self._prev_label = -1
         self._prev_name = ''
+        self._listen_last_state = ''
 
         self._verbose = verbose
 
@@ -145,6 +146,28 @@ class CoreNode(object):
             response = input('response: ')
         return response, new_label, new_name
 
+    def _t2s(self, text):
+        """Call Pepper text to speech or simulate that. 
+
+        Args:
+            text (str): the text to speech.
+        """
+        if ON_PEPPER:
+            self._persistence_service_call('responseMoving') 
+            self._persistence_service_call('tts', text)
+            self._persistence_service_call('listeningMoving')
+        else:
+            try:
+                to_speak = gTTS(text=text, lang=LANGUAGE, slow=False)
+                to_speak.save("temp.wav")
+                playsound("temp.wav")
+                os.remove("temp.wav")
+            except AssertionError:
+                pass
+        
+        if self._verbose:
+            print(f'[CORE] TTS: {text}')
+
     def _handle_audio(self, audio):
         """Callback function to handle the receipt of an audio (so to understand and answer to
         a person who are talking).
@@ -181,8 +204,11 @@ class CoreNode(object):
                 print(f'[CORE] 1. Does not unterstood, text={text}.')
             
             self._mutex.acquire()
+            if self._listen_last_state.ack != 'timeout':
+                self._t2s("I don't understood.")
+
             if self._human_presence:
-                self._persistence_service_call('startListening')
+                self._listen_last_state = self._persistence_service_call('startListening')
             self._mutex.release()
             return
 
@@ -298,25 +324,13 @@ class CoreNode(object):
         # 6.    Speech2Text to reproduce the response as audio.
         #       Pepper start making speacking movement. After that we made pepper speak.
         #       Finally pepper start moving for listening.
-        if ON_PEPPER:
-            self._persistence_service_call('responseMoving') 
-            self._persistence_service_call('tts', response_text)
-            self._persistence_service_call('listeningMoving')
-        else:
-            try:
-                to_speak = gTTS(text=response_text, lang=LANGUAGE, slow=False)
-                to_speak.save("temp.wav")
-                playsound("temp.wav")
-                os.remove("temp.wav")
-            except AssertionError:
-                pass
-            
-        if self._verbose:
-            print(f'[CORE] 6. TTS: {response_text}')        
+        self._t2s(response_text)        
 
         # ______________________________________________________________________________
         # 6.1   After Pepper has told, we restart the listening.
-        self._persistence_service_call('startListening')
+        self._mutex.acquire()
+        self._listen_last_state = self._persistence_service_call('startListening')
+        self._mutex.release()
 
     def _handle_tracking(self, presence):
         """Callback function for topic track/human_presence. Implement an FSM to 
@@ -339,7 +353,7 @@ class CoreNode(object):
             if self._verbose:
                 print('[CORE] Tracking: Human presence detected.')
 
-            self._persistence_service_call('startListening')
+            self._listen_last_state = self._persistence_service_call('startListening')
 
             # Also, Pepper start moving for listening.
             if ON_PEPPER:            

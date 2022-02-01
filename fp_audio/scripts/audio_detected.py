@@ -70,18 +70,25 @@ class AudioDetected(object):
                 data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
                 if self._verbose:
                     print("[T2S] Listened")
+                self._publisher.publish(data_to_send)
+
+                self._mutex.acquire()
+                self._running = False
+                self._mutex.release()
+
+                return 'listened'
+
             except sr.WaitTimeoutError:
                 if self._verbose:
                     print("[T2S] Timeout")
                 data_to_send.data = b'\x00 \x00'
-            
-            self._publisher.publish(data_to_send)
+                self._publisher.publish(data_to_send)
 
-        self._mutex.acquire()
-        self._running = False
-        self._mutex.release()
+                self._mutex.acquire()
+                self._running = False
+                self._mutex.release()
 
-        return "ack"
+                return "timeout"
 
 
 if __name__ == "__main__":
