@@ -69,18 +69,21 @@ class ActionShow(Action):
         if username is None:
             dispatcher.utter_message(text="Please give me your name") 
             return []
-
-        if data_all_user.get(id) is not None: #is not empty
-            # Compose the show message
-            data = data_all_user[id]
             
-            text = "In your list there are "
-            for k in data.keys():
-                v = data[k]
-                text += str(v) + " " + k +  "," 
+        try:
+            data = data_all_user[id]
+            # Compose the show message
+            
+            if data:
+                text = "In your list there are "
+                for k in data.keys():
+                    v = data[k]
+                    text += str(v) + " " + k +  "," 
 
-            text = text[:-1]      
-        else:
+                text = text[:-1]  
+            else:
+                text = "Your shopping list is empty!"     
+        except KeyError:
             text = "Your shopping list is empty!"      
         
         dispatcher.utter_message(text=text) 
