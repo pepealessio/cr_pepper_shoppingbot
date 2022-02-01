@@ -7,12 +7,13 @@ from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, Star
 from gtts import gTTS
 import numpy as np
 from ros_chatbot.srv import Dialogue
-from pepper_nodes.srv import Text2Speech, WakeUp, StartFollowing, ListeningMoving, ResponseMoving
+from pepper_nodes.srv import Text2Speech, WakeUp, StartFollowing, ListeningMoving, ResponseMoving, StopMoving
 from playsound import playsound
 import rospy
 from scipy.io.wavfile import write
 from std_msgs.msg import Int16MultiArray, String, Int16, Bool
 from threading import Lock
+from time import sleep
 
 
 class CoreNode(object):
@@ -103,6 +104,8 @@ class CoreNode(object):
         self._persistence_service_init('setEmbedding', SetEmbedding)
         self._persistence_service_init('startListening', StartListening)
         self._persistence_service_init('tts', Text2Speech)
+        self._persistence_service_init('stopMoving', StopMoving)
+
 
         # Pepper WakeUp & start following people
         if ON_PEPPER:
@@ -156,6 +159,7 @@ class CoreNode(object):
             self._persistence_service_call('responseMoving') 
             self._persistence_service_call('tts', text)
             self._persistence_service_call('listeningMoving')
+            sleep(1)
         else:
             try:
                 to_speak = gTTS(text=text, lang=LANGUAGE, slow=False)
@@ -167,6 +171,7 @@ class CoreNode(object):
         
         if self._verbose:
             print(f'[CORE] TTS: {text}')
+        
 
     def _handle_audio(self, audio):
         """Callback function to handle the receipt of an audio (so to understand and answer to

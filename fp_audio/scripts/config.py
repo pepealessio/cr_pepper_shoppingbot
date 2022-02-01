@@ -24,7 +24,7 @@ DATA_FILENAME = 'embeddings_data.pk'
 FACE_MIN_DETECTION_CONFIDENCE = 0.7
 
 # The maximum number of frame with different state before changing that
-HUMAN_PRESENCE_GHOST_FRAME = 7
+HUMAN_PRESENCE_GHOST_FRAME = 15
 
 # Topic in witch a std_msgs/Bool will be published if an human is present or not. 
 HUMAN_PRESENCE_TOPIC = '/track/human_presence'
@@ -39,19 +39,19 @@ MAX_EMBEDDING_PER_LABEL = 6
 
 # pyAudio microphone idex. That need to be changed basing on the device. 
 # -- On my VM, if i connect microphone directly to VM this is 2.
-MICROPHONE_INDEX = None
+MICROPHONE_INDEX = 2
 
 # Flag: If False, the services who need Pepper are not called. Useful for debug.
 # -- In the use must be True.
-ON_PEPPER = False
+ON_PEPPER = True
 
 # If true, the raw audio will be saved in a folder. We used that to made test at home.
 # -- In the use must be False (to improve the fastness).
-SAVE_RAW_AUDIO = None
+SAVE_RAW_AUDIO = True
 
 # If true, all the frame from the camera will be saved to make test at home.
 # -- In the use must be False (to improve the fastness).
-SAVE_RAW_FRAME = False
+SAVE_RAW_FRAME = True
 
 # Audio sample rate
 # -- 16000 Good for the pepper microphone
