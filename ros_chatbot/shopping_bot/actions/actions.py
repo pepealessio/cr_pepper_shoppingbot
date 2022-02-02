@@ -1,36 +1,24 @@
-from typing import Any, Text, Dict, List
-
+import logging
+import os
+import pathlib
+from pattern.text.en import singularize
+import pickle
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
-
-import pickle
-import logging
+from typing import Any, Text, Dict, List
 from word2number import w2n
-from pattern.text.en import singularize
-import pathlib
 
-import os
 
+FILE_PATH = str(pathlib.Path(__file__).parent.resolve()) + "/../database"
 logging.getLogger(__name__)
-
-
-ONLY_BOT = False
-FILE_PATH = str(pathlib.Path(__file__).parent.resolve()) + "/../database/data.pk"
-
-
-def hash_functions(s):
-    i =0
-    for j in range(len(s)):
-        i+=ord(s[j])
-    return i
 
 
 def load_data(file_path=FILE_PATH):
     """If the data exist load the data from a db (represented by a dict(str[name] -> int[quantity])).
     If not, return an empty dict."""
     try:
-        with open(file_path,'rb') as fh:
+        with open(os.path.join(file_path, 'data.pk'),'rb') as fh:
             data = pickle.load(fh)
     except FileNotFoundError:
         data = {}
@@ -40,7 +28,10 @@ def load_data(file_path=FILE_PATH):
 
 def save_data(data, file_path=FILE_PATH):
     """Save the data in the datapath prodided."""
-    with open(file_path, 'wb') as f:
+    if not os.path.exists(file_path):
+        os.mkdir(file_path)
+
+    with open(os.path.join(file_path, 'data.pk'), 'wb') as f:
         pickle.dump(data,f)
     
 
@@ -61,10 +52,7 @@ class ActionShow(Action):
         username = tracker.get_slot("username")
         username = username.lower()
 
-        if not ONLY_BOT:
-            id = int(tracker.get_slot("slot_id"))
-        else:
-            id = hash_functions(username)
+        id = int(tracker.get_slot("slot_id"))
         
         if username is None:
             dispatcher.utter_message(text="Please give me your name") 
@@ -123,10 +111,7 @@ class ActionAdd(Action):
             return []
         username = username.lower()
 
-        if not ONLY_BOT:
-            id = int(tracker.get_slot("slot_id"))
-        else:
-            id = hash_functions(username)
+        id = int(tracker.get_slot("slot_id"))
 
         if data.get(id) is None:
             data[id] = {}
@@ -176,10 +161,7 @@ class ActionRemove(Action):
             return []
         username = username.lower()
 
-        if not ONLY_BOT:
-            id = int(tracker.get_slot("slot_id"))
-        else:
-            id = hash_functions(username)
+        id = int(tracker.get_slot("slot_id"))
 
         try:
             data[id][item_name] -= item_quantity
@@ -231,10 +213,7 @@ class ActionUpdate(Action):
             return []
         username = username.lower()
 
-        if not ONLY_BOT:
-            id = int(tracker.get_slot("slot_id"))
-        else:
-            id = hash_functions(username)
+        id = int(tracker.get_slot("slot_id"))
 
         if data.get(id) is None:
             data[id] = {}
@@ -269,10 +248,7 @@ class ActionEmpty(Action):
             return []
         username = username.lower()
 
-        if not ONLY_BOT:
-            id = int(tracker.get_slot("slot_id"))
-        else:
-            id = hash_functions(username)
+        id = int(tracker.get_slot("slot_id"))
         
         try:
             data[id].clear()
