@@ -1,3 +1,5 @@
+<!-- Launch file to test the integration between ROS and RASA.-->
+
 <launch>
     <arg name="node_start_delay" default="60.0" />  
     <node pkg="ros_chatbot" name="rasa_action" type="rasa_action.sh" output="screen"/>

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import json
 from ros_chatbot.srv import Dialogue, DialogueResponse
-
 import rospy
 import requests
 
@@ -118,6 +117,7 @@ class DialogueServer:
         return response
 
     def start(self):
+        """Start the service."""
         rospy.init_node('dialogue_service')
         rospy.Service('dialogue_server', Dialogue, self._handle_dialogue)
         rospy.logdebug('Dialogue server READY.')
