@@ -38,7 +38,7 @@ LANGUAGE='en-GB'
 MAX_EMBEDDING_PER_LABEL = 6
 
 # pyAudio microphone idex. That need to be changed basing on the device. 
-# -- On my VM, if i connect microphone directly to VM this is 2.
+# -- On our pc is 6.
 MICROPHONE_INDEX = 6
 
 # Flag: If False, the services who need Pepper are not called. Useful for debug.
@@ -47,7 +47,7 @@ ON_PEPPER = True
 
 # If true, the raw audio will be saved in a folder. We used that to made test at home.
 # -- In the use must be False (to improve the fastness).
-SAVE_RAW_AUDIO = True
+SAVE_RAW_AUDIO = False
 
 # If true, all the frame from the camera will be saved to make test at home.
 # -- In the use must be False (to improve the fastness).
