@@ -37,6 +37,8 @@ class VideoDetector(object):
         #     frame = frame[:,:,::-1]
 
         if SAVE_RAW_FRAME:
+            if not os.path.exists(os.path.join(REF_PATH, 'saved_imgs')):
+                os.mkdir(os.path.join(REF_PATH, 'saved_imgs'))
             cv2.imwrite(os.path.join(REF_PATH, 'saved_imgs', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S.%f")}.jpeg'), frame)
        
         # Transform the image in a blob
