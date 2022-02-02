@@ -4,7 +4,7 @@
 -Alex in
 Hello
 my name is
-Insert 10 oranges
+Insert 11 oranges
 thank you
 Goodbye
 -Alex out
@@ -13,25 +13,27 @@ Goodbye
 
 -Alex in
 Hello
-can u show my list
+can u show me my list
 -Alex out
 
 ---------------------------
 
-2.1 
+2 
 
-- Eveline in
+- Emily in
 Hi 
 my name is
-show my list
+show me my list
 insert bananas in my list 
 five
 thank you
 bye
-- Eveline out
+- Emily out
 
 
-2.2
+--------------------------
+
+3
 
 - Tony in
 Good morning
@@ -41,58 +43,44 @@ insert 2 watermelon in my list
 bye
 - Tony out
 
-2.3
-
-- Eveline in
-Hi 
-show my list
-remove 1 banana
-- Eveline out
-
-2.2
-
-- Tony in
-Good Morning
-show my list
-thank you
-- Tony out
-
 -------------------------
 
-3.1 
+4
 
-- Giusy in
+- Katy in
 Good Evening
 my name is
 Add some pineapples in my list
 11
 show my list
 thank youbye bye
-- Giusy out
+- Katy out
 
-3.2
+-------------------------
+
+5.1
 
 -Alex in
 Hello
 can u show my list
 -Alex out
 
-3.3
+5.2
 
--Eveline in
-Hello
+-Emily in
+Hi
 can u show my list
--Eveline out
+-Emily out
 
-3.4
+5.3
 
 -Tony in
-Hello
+Good morning
 can u show my list
 -Tony out
 
-3.5
--Giusy in
-Hello
+5.4
+-Katy in
+Good Evening
 can u show my list
--Giusy out
+-Katy out
