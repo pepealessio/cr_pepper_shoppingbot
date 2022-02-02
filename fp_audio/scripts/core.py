@@ -24,7 +24,8 @@ class CoreNode(object):
         """
         self._buffer = Buffer(max_size=MAX_EMBEDDING_PER_LABEL)
         self._human_presence = False
-        self._mutex = Lock()
+        self._mutex_human_presence = Lock()
+        self._mutex_lock_handle_audio = Lock()
         self._persistent_services = dict()  # dict str -> Touple[func, module]
         self._prev_time = None
         self._prev_label = -1
@@ -158,7 +159,7 @@ class CoreNode(object):
             self._persistence_service_call('responseMoving') 
             self._persistence_service_call('tts', text)
             self._persistence_service_call('listeningMoving')
-            sleep(1)
+            sleep(0.01)  # needed to synchronize
         else:
             try:
                 to_speak = gTTS(text=text, lang=LANGUAGE, slow=False)
@@ -183,16 +184,18 @@ class CoreNode(object):
         Raise:
             rospy.ServiceException: if a service fail or it's not reachble.
         """
+        self._mutex_lock_handle_audio.acquire()
+        self._mutex_lock_handle_audio.release()
         # ______________________________________________________________________________
         # 1.    This method must be thread-safe, so we check with a mutex if it's already
         #       running. In that case, we stop the unnecessary new run.
-        self._mutex.acquire()
+        self._mutex_human_presence.acquire()
 
         if not self._human_presence:
-            self._mutex.release()
+            self._mutex_human_presence.release()
             return
         else:
-            self._mutex.release()
+            self._mutex_human_presence.release()
 
         # ______________________________________________________________________________
         # 1.1   Speech2Text to understand if there is noise or not in that audio.
@@ -207,11 +210,11 @@ class CoreNode(object):
             if self._verbose:
                 print(f'[CORE] 1. Does not unterstood, text={text}.')
             
-            self._mutex.acquire()
+            self._mutex_human_presence.acquire()
             if self._human_presence:
                 self._t2s("I don't understood.")
                 self._persistence_service_call('startListening')
-            self._mutex.release()
+            self._mutex_human_presence.release()
             return
 
         if self._verbose:
@@ -314,9 +317,9 @@ class CoreNode(object):
         # ______________________________________________________________________________
         # 5.1.  Chatbot response can come after a person go away, so we chech if the person is
         #       here (for example saying goodbye and walk away without wait for a response)
-        self._mutex.acquire()
+        self._mutex_human_presence.acquire()
         hp = self._human_presence
-        self._mutex.release()
+        self._mutex_human_presence.release()
 
         if not hp:
             return
@@ -330,9 +333,9 @@ class CoreNode(object):
 
         # ______________________________________________________________________________
         # 6.1   After Pepper has told, we restart the listening.
-        self._mutex.acquire()
+        self._mutex_human_presence.acquire()
         self._persistence_service_call('startListening')
-        self._mutex.release()
+        self._mutex_human_presence.release()
 
     def _handle_tracking(self, presence):
         """Callback function for topic track/human_presence. Implement an FSM to 
@@ -343,7 +346,8 @@ class CoreNode(object):
         # ______________________________________________________________________________  
         # 0.    This variable contains True if an human is present, false if not. We can
         #       assume if this function is running that state this value is just changed.
-        self._mutex.acquire()
+        self._mutex_lock_handle_audio.acquire()
+        self._mutex_human_presence.acquire()
         self._human_presence = presence.data
 
         if self._human_presence:
@@ -384,7 +388,8 @@ class CoreNode(object):
             if ON_PEPPER:
                 self._persistence_service_call('stopMoving')
 
-        self._mutex.release()
+        self._mutex_human_presence.release()
+        self._mutex_lock_handle_audio.release()
 
     def _handle_shutdown(self):
         """On killing the application, stop all the service that can be running on 

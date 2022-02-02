@@ -64,7 +64,20 @@ class AudioDetected(object):
             data_to_send = Int16MultiArray()
 
             if self._verbose:
-                print("[T2S] Start listened")
+                print("[T2S] Start listening")
+
+            print("""
+                      _                          
+                     | |                         
+ ___ _ __   ___  __ _| | __  _ __   _____      __
+/ __| '_ \ / _ \/ _` | |/ / | '_ \ / _ \ \ /\ / /
+\__ \ |_) |  __/ (_| |   <  | | | | (_) \ V  V / 
+|___/ .__/ \___|\__,_|_|\_\ |_| |_|\___/ \_/\_/  
+    | |                                          
+    |_|                                          
+    
+    """)
+
             try:
                 audio = self._r.listen(source, timeout=5)
                 data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
