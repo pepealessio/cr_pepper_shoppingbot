@@ -25,7 +25,7 @@ Hi
 my name is
 show me my list
 insert bananas in my list 
-five
+one
 thank you
 bye
 - Emily out
