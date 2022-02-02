@@ -106,7 +106,6 @@ class CoreNode(object):
         self._persistence_service_init('tts', Text2Speech)
         self._persistence_service_init('stopMoving', StopMoving)
 
-
         # Pepper WakeUp & start following people
         if ON_PEPPER:
             if self._verbose:
@@ -134,7 +133,6 @@ class CoreNode(object):
             tuple[str, int, str]: A touple containing the reply of the chatbot, the label of the
             user actually setted in the chatbot, and the name of the user actually setted in the chatbot.
         """
-
         if CHATBOT_RUNNING:
             bot_answer = self._persistence_service_call('dialogue_server', text, name, label)
             
@@ -184,10 +182,13 @@ class CoreNode(object):
         Raise:
             rospy.ServiceException: if a service fail or it's not reachble.
         """
+        # ______________________________________________________________________________
+        # 1.    Wait for not start this callback at the same time of _handle_tracking.
         self._mutex_lock_handle_audio.acquire()
         self._mutex_lock_handle_audio.release()
+
         # ______________________________________________________________________________
-        # 1.    This method must be thread-safe, so we check with a mutex if it's already
+        # 1.1.  This method must be thread-safe, so we check with a mutex if it's already
         #       running. In that case, we stop the unnecessary new run.
         self._mutex_human_presence.acquire()
 
@@ -198,7 +199,7 @@ class CoreNode(object):
             self._mutex_human_presence.release()
 
         # ______________________________________________________________________________
-        # 1.1   Speech2Text to understand if there is noise or not in that audio.
+        # 1.2   Speech2Text to understand if there is noise or not in that audio.
         #       Also, get the text from the audio. 
         #       If there's no words in the audio, restart the listening to keep active
         #       the michrophone.
@@ -223,6 +224,8 @@ class CoreNode(object):
         # This part is used just for save some audio to use in the tests from home.
         if SAVE_RAW_AUDIO:
             audio_data = np.array(audio.data).astype(np.float32, order='C') / 32768.0  # to float32
+            if not os.path.exists(os.path.join(REF_PATH, 'saved_audio')):
+                os.mkdir(os.path.join(REF_PATH, 'saved_audio'))
             write(os.path.join(REF_PATH, 'saved_audio', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S")}.wav'), RATE, audio_data)
 
         # ______________________________________________________________________________
@@ -277,7 +280,6 @@ class CoreNode(object):
             self._persistence_service_call('setEmbedding', embedding, Int16(label), String(name))
             self._buffer.clear()
 
-
         # ______________________________________________________________________________
         # 4.    Interaction with the chatbot. The chatbot take in input the sentence, 
         #       and name, label from the reidentification service and provide in output
@@ -296,7 +298,6 @@ class CoreNode(object):
 
         if self._verbose:
             print(f'[CORE] 4. Chatbot: response={response_text}, name={new_name}, label={new_label}.')
-
 
         # ______________________________________________________________________________
         # 5.    Set embedding if previously was unknown and now the name is provided by
@@ -324,7 +325,6 @@ class CoreNode(object):
         if not hp:
             return
 
-
         # ______________________________________________________________________________      
         # 6.    Speech2Text to reproduce the response as audio.
         #       Pepper start making speacking movement. After that we made pepper speak.
@@ -342,6 +342,10 @@ class CoreNode(object):
         stop all operation and reset the state if the human exit the scene and 
         restart if an human enter in the scene.
         This method id thread-safe.
+
+
+        Args:
+            presence (std_msgs/Bool): True if a person is present, otherwise False. 
         """
         # ______________________________________________________________________________  
         # 0.    This variable contains True if an human is present, false if not. We can
