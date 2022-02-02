@@ -39,7 +39,7 @@ MAX_EMBEDDING_PER_LABEL = 6
 
 # pyAudio microphone idex. That need to be changed basing on the device. 
 # -- On my VM, if i connect microphone directly to VM this is 2.
-MICROPHONE_INDEX = 2
+MICROPHONE_INDEX = 6
 
 # Flag: If False, the services who need Pepper are not called. Useful for debug.
 # -- In the use must be True.
