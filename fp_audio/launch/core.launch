@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="fp_audio" type="audio_detected.py" name="audio_detected" output="screen"/>
+    <node pkg="fp_audio" type="speech2text.py" name="speech2text" output="screen"/>
+    <node pkg="fp_audio" type="reidentification.py" name="reidentification" output="screen"/>
+    <node pkg="fp_audio" type="video_detector.py" name="video_detector" output="screen"/>
+    <node pkg="fp_audio" type="core.py" name="core" output="screen"/>
+</launch>

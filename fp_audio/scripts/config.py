@@ -24,7 +24,7 @@ DATA_FILENAME = 'embeddings_data.pk'
 FACE_MIN_DETECTION_CONFIDENCE = 0.7
 
 # The maximum number of frame with different state before changing that
-HUMAN_PRESENCE_GHOST_FRAME = 10
+HUMAN_PRESENCE_GHOST_FRAME = 15
 
 # Topic in witch a std_msgs/Bool will be published if an human is present or not. 
 HUMAN_PRESENCE_TOPIC = '/track/human_presence'
@@ -66,6 +66,10 @@ REF_PATH = os.path.dirname(os.path.abspath(__file__))
 # Value in [0, 1] representing the audio re-identification threshold.
 # -- This parameter (0.65) seems working with 4 people.
 REID_TH = 0.65  
+
+# The fps published by the image publisher. This must be replicated in 
+# pepper_nodes
+VIDEO_FPS = 10
 
 # Topin on which will be published the image received by the Pepper camera
 VIDEO_TOPIC = '/in_rgb'

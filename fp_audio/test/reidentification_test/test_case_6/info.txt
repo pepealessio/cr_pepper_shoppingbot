@@ -1,0 +1,66 @@
+Training set contains the following data:
+
+ID 4:
+
+- Sample 7: duration 3 sec, add
+- Sample 8: duration 2 sec, show
+- Sample 9: duration 5 sec, remove
+
+ID 3:
+
+- Sample 18: duration 3 sec, add
+- Sample 20: duration 6 sec, remove
+- Sample 21: duration 5 sec, thank
+- Sample 16: duration 4 sec, thank
+- Sample 17: duration 5 sec, delete
+
+
+
+ID 2:
+- Sample 5: duration 6 sec, add
+- Sample 11: duration 3 sec, name
+- Sample 12: duration 7 sec, delete, some latest silence seconds
+- Sample 9: duration 4 sec, add
+- Sample 13: duration 14 sec, update
+
+ID 1:
+
+Samples, duration, action, other info
+
+- Sample 24: duration 2 sec, greetings
+- Sample 25: duration 5 sec, empty
+- Sample 26: duration 11 sec, remove, the last seconds are silence
+- Sample 23: duration 2 sec, greetings
+- Sample 28: duration 3 sec, show
+
+Test set contains the following data:
+
+ID -1:
+- Sample 5_1: duration 2 sec, name, Male
+- Sample 5_4: duration 2 sec, add, Male
+- Sample 6_1: duration 2 sec, greeting, Female
+- Sample 6_4: duration 2 sec, show, Female
+
+ID 4:
+
+- Sample 4: duration 4 sec, empty
+- Sample 5: duration 3 sec, greeting
+
+ID 3:
+
+- Sample 13: duration 2 sec, greeting
+- Sample 15: duration 3 sec, show
+
+
+
+ID 2:
+- Sample 8: duration 3 sec, greetings
+- Sample 14: duration 4 sec, add
+
+
+ID 1:
+
+Sample, duration, action, other info
+
+- Sample 29: duration 2 sec, greetings
+- Sample 27: duration 6 sec, remove

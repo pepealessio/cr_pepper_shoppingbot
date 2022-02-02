@@ -6,6 +6,7 @@ from sensor_msgs.msg import Image
 import numpy as np
 import rospy
 
+VIDEO_FPS = 10
 
 TOP_CAMERA = 0
 BOTTOM_CAMERA = 1
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     parser.add_option("--port", dest="port", default=9559)
     (options, args) = parser.parse_args()
     try:
-        image_input = ImageInputNode(options.ip, int(options.port), fps=5)
+        image_input = ImageInputNode(options.ip, int(options.port), fps=VIDEO_FPS)
         image_input.start()
     except rospy.ROSInterruptException:
         pass

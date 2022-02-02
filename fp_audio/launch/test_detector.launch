@@ -1,0 +1,5 @@
+<launch>
+    <arg name="node_start_delay" default="2.0" /> 
+    <node pkg="fp_audio" type="video_detector.py" name="video_detection" required="true" output="screen"/>
+    <node pkg="fp_audio" type="detector_test.py" name="detector_test" required="true" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+</launch>

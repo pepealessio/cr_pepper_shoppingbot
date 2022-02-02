@@ -121,6 +121,16 @@ class DialogueServer:
         rospy.init_node('dialogue_service')
         rospy.Service('dialogue_server', Dialogue, self._handle_dialogue)
         rospy.logdebug('Dialogue server READY.')
+        print("""
+______  ___   _____  ___   ______ _____  ___ ________   __
+| ___ \/ _ \ /  ___|/ _ \  | ___ \  ___|/ _ \|  _  \ \ / /
+| |_/ / /_\ \\ `--./ /_\ \ | |_/ / |__ / /_\ \ | | |\ V / 
+|    /|  _  | `--. \  _  | |    /|  __||  _  | | | | \ /  
+| |\ \| | | |/\__/ / | | | | |\ \| |___| | | | |/ /  | |  
+\_| \_\_| |_/\____/\_| |_/ \_| \_\____/\_| |_/___/   \_/  
+                                                          
+                                                          """)
+        print('[CHATBOT INTERFACE] ready.')
         rospy.spin()
     
 if "__main__" == __name__:

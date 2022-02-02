@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 
 import rospy
-from ros_chatbot.srv import Dialogue, DialogueResponse
+from ros_chatbot.srv import Dialogue
 
 class TerminalInterface:
-    '''Class implementing a terminal i/o interface. 
-
-    Methods
-    - get_text(self): return a string read from the terminal
-    - set_text(self, text): prints the text on the terminal
-
-    '''
+    """Class implementing a terminal i/o interface. 
+    """
 
     def get_text(self):
-        return input("[IN]:  ") 
+        """Take the paraemter from command line.
+        """
+        return int(input("[IN] id > ")), input('[IN] name >'), input('[IN] text > ')
 
-    def set_text(self,text):
-        print("[OUT]:",text)
+    def set_text(self, id, name, text):
+        """Print the output text and the identity state and the bot answer.
+        """
+        print(f"[OUT] id={id}, name={name}, text={text}")
 
 def main():
     rospy.init_node('writing')
@@ -26,16 +25,12 @@ def main():
     terminal = TerminalInterface()
 
     while not rospy.is_shutdown():
-        message = terminal.get_text()
-        user = "alfonso"
-        id = 1
+        id, user, message = terminal.get_text()
         if message == 'exit': 
             break
         try:
             bot_answer = dialogue_service(message,user,id)
-            terminal.set_text(bot_answer.answer)
-            terminal.set_text(bot_answer.bot_username)
-            terminal.set_text(bot_answer.bot_id)
+            terminal.set_text(bot_answer.bot_id, bot_answer.bot_username, bot_answer.answer)
 
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)

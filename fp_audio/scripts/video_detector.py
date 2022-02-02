@@ -20,7 +20,7 @@ class VideoDetector(object):
         modelPath = os.path.sep.join([REF_PATH, 'face_detection_model', "res10_300x300_ssd_iter_140000.caffemodel"])
         self._detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
-        self._publisher = rospy.Publisher(HUMAN_PRESENCE_TOPIC, Bool, queue_size=0)
+        self._publisher = rospy.Publisher(HUMAN_PRESENCE_TOPIC, Bool, queue_size=None)
 
         self._curr_state = False
         self._change_state_count = 0
