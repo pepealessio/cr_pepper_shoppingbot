@@ -7,7 +7,7 @@ from fp_audio.srv import Speech2Text, GetEmbedding, SetEmbedding, GetLabel, Star
 from gtts import gTTS
 import numpy as np
 from ros_chatbot.srv import Dialogue
-from pepper_nodes.srv import Text2Speech, WakeUp, StartFollowing, ListeningMoving, ResponseMoving, StopMoving
+from pepper_nodes.srv import Text2Speech, WakeUp, StartFollowing
 from playsound import playsound
 import rospy
 from scipy.io.wavfile import write
@@ -25,7 +25,6 @@ class CoreNode(object):
         self._buffer = Buffer(max_size=MAX_EMBEDDING_PER_LABEL)
         self._human_presence = False
         self._mutex_human_presence = Lock()
-        self._mutex_lock_handle_audio = Lock()
         self._persistent_services = dict()  # dict str -> Touple[func, module]
         self._prev_time = None
         self._prev_label = -1
@@ -89,7 +88,6 @@ class CoreNode(object):
         and start some modules on that.
         """
         rospy.init_node('core', anonymous=True)
-        rospy.Subscriber(RAW_AUDIO_TOPIC, Int16MultiArray, self._handle_audio)
         rospy.Subscriber(HUMAN_PRESENCE_TOPIC, Bool, self._handle_tracking)
         rospy.on_shutdown(self._handle_shutdown)
 
@@ -97,14 +95,11 @@ class CoreNode(object):
         self._persistence_service_init('dialogue_server', Dialogue)
         self._persistence_service_init('getEmbedding', GetEmbedding)
         self._persistence_service_init('getLabel', GetLabel)
-        self._persistence_service_init('listeningMoving', ListeningMoving)
         self._persistence_service_init('nextLabel', NextLabel)
         self._persistence_service_init('s2t', Speech2Text)
-        self._persistence_service_init('responseMoving', ResponseMoving)
         self._persistence_service_init('setEmbedding', SetEmbedding)
         self._persistence_service_init('startListening', StartListening)
         self._persistence_service_init('tts', Text2Speech)
-        self._persistence_service_init('stopMoving', StopMoving)
 
         # Pepper WakeUp & start following people
         if ON_PEPPER:
@@ -119,7 +114,156 @@ class CoreNode(object):
         if self._verbose:
             print('[CORE] Starting done.')
 
-        rospy.spin()
+        # ______________________________________________________________________________
+        # This is the main cycle of the application.
+        rate = rospy.Rate(10)
+
+        while not rospy.is_shutdown():
+            rate.sleep()
+
+            # ______________________________________________________________________________
+            # 1.    This method must be thread-safe, so we check with a mutex. 
+            #       In case no human is in front of Pepper, we stop the unnecessary run.
+            self._mutex_human_presence.acquire()
+
+            if not self._human_presence:
+                self._mutex_human_presence.release()
+                continue
+            else:
+                startListeningResponse = self._persistence_service_call('startListening')
+                audio = startListeningResponse.output
+                self._mutex_human_presence.release()
+
+            # ______________________________________________________________________________
+            # 1.2   Speech2Text to understand if there is noise or not in that audio.
+            #       Also, get the text from the audio. 
+            #       If there's no words in the audio, restart the cicle
+
+            speech2textResp = self._persistence_service_call('s2t', audio)
+            text = speech2textResp.output.data
+
+            if (text == '' or text == 'ERR1' or text == 'ERR2'):
+                if self._verbose:
+                    print(f'[CORE] 1. Does not unterstood, text={text}.')
+                
+                self._mutex_human_presence.acquire()
+                if self._human_presence:
+                    self._t2s("I don't understood.")
+                self._mutex_human_presence.release()
+                continue
+
+            if self._verbose:
+                print(f'[CORE] 1. Listened: {text}')
+
+            # This part is used just for save some audio to use in the tests from home.
+            if SAVE_RAW_AUDIO:
+                audio_data = np.array(audio.data).astype(np.float32, order='C') / 32768.0  # to float32
+                if not os.path.exists(os.path.join(REF_PATH, 'saved_audio')):
+                    os.mkdir(os.path.join(REF_PATH, 'saved_audio'))
+                write(os.path.join(REF_PATH, 'saved_audio', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S")}.wav'), RATE, audio_data)
+
+            # ______________________________________________________________________________
+            # 2.    If the audio contains voice, we use getEmbedding to compute the 
+            #       embedding of that audio and we add that in a buffer. 
+
+            getEmbeddingResp = self._persistence_service_call('getEmbedding', audio)
+            embedding = getEmbeddingResp.output
+
+            # ______________________________________________________________________________
+            # 3.    If in the previos conversational round the user was known and the time 
+            #       between the two rounds is less than CONVERSATION_ROUND_MIN_LEN seconds, 
+            #       use the previos known identity.
+            time = datetime.now()
+
+            if (self._prev_time is not None) and \
+                ((time - self._prev_time).seconds <= CONVERSATION_ROUND_MAX_LEN) and \
+                (self._prev_label != -1):
+
+                if self._verbose:
+                    print(f'[CORE] 3. Re-Identification: Using previous identity.')
+                
+                label = self._prev_label
+                name = self._prev_name
+            
+            # ______________________________________________________________________________
+            #  3.1  Else try to get the label of the embedding previous computed.  
+            else:
+                getLabelResp = self._persistence_service_call('getLabel', embedding)
+                label = getLabelResp.out_label.data
+                name = getLabelResp.out_name.data
+
+                if self._verbose:
+                    print(f'[CORE] 3.1 Re-Identification: name={name}, label={label}')
+            
+            self._prev_time = time
+            self._prev_label = label
+            self._prev_name = name
+            
+            # ______________________________________________________________________________
+            # 3.2   If the label is known, we store that embedding with that label. 
+            #       Otherwise we add that in a buffer because we assume the chatbot 
+            #       give us the name in feaw conversation round. The buffer will be 
+            #       cleared if the people will be identified to avoid to assign that 
+            #       embedding to other people.
+
+            if label == -1:  
+                # unknown voice
+                self._buffer.put(embedding)
+
+            else:  # known voice
+                self._persistence_service_call('setEmbedding', embedding, Int16(label), String(name))
+                self._buffer.clear()
+
+            # ______________________________________________________________________________
+            # 4.    Interaction with the chatbot. The chatbot take in input the sentence, 
+            #       and name, label from the reidentification service and provide in output
+            #       a response and a new_label, new_name actually present in the slots.
+            #
+            #       If the identity is not known we provide the next label because there is
+            #       a case in witch the chatbot require the label to execute the operation 
+            #       just before of return the name to set the identity.
+
+            if label != -1:
+                response_text, new_label, new_name = self._chatbot_interaction(text, name, label)
+            else:
+                nextLabelResp = self._persistence_service_call('nextLabel')
+                next_label = nextLabelResp.out_label.data
+                response_text, new_label, new_name = self._chatbot_interaction(text, name, next_label)
+
+            if self._verbose:
+                print(f'[CORE] 4. Chatbot: response={response_text}, name={new_name}, label={new_label}.')
+
+            # ______________________________________________________________________________
+            # 5.    Set embedding if previously was unknown and now the name is provided by
+            #       the chatbot. 
+            
+            if label == -1 and new_name != '':
+            
+                while not self._buffer.isEmpty():
+                    setEmbeddingResp = self._persistence_service_call('setEmbedding', self._buffer.pop(), Int16(new_label), String(new_name))
+                    new_label = setEmbeddingResp.out_label.data
+
+                self._prev_label = new_label
+                self._prev_name = new_name
+                
+                if self._verbose:
+                    print(f'[CORE] 5. Setted label={new_label} and name={new_name}')
+
+            # ______________________________________________________________________________
+            # 5.1.  Chatbot response can come after a person go away, so we chech if the person is
+            #       here (for example saying goodbye and walk away without wait for a response)
+            self._mutex_human_presence.acquire()
+            hp = self._human_presence
+            self._mutex_human_presence.release()
+
+            if not hp:
+                continue
+
+            # ______________________________________________________________________________      
+            # 6.    Speech2Text to reproduce the response as audio.
+            #       Pepper start making speacking movement. After that we made pepper speak.
+            #       Finally pepper start moving for listening.
+            self._t2s(response_text) 
 
     def _chatbot_interaction(self, text, name, label):
         """Interaction with the chatbot
@@ -154,9 +298,7 @@ class CoreNode(object):
             text (str): the text to speech.
         """
         if ON_PEPPER:
-            self._persistence_service_call('responseMoving') 
             self._persistence_service_call('tts', text)
-            self._persistence_service_call('listeningMoving')
             sleep(0.01)  # needed to synchronize
         else:
             try:
@@ -169,173 +311,6 @@ class CoreNode(object):
         
         if self._verbose:
             print(f'[CORE] TTS: {text}')
-        
-
-    def _handle_audio(self, audio):
-        """Callback function to handle the receipt of an audio (so to understand and answer to
-        a person who are talking).
-        This method id thread-safe.
-
-        Args:
-            audio (Int16MultiArray): the audio received by the topic.
-
-        Raise:
-            rospy.ServiceException: if a service fail or it's not reachble.
-        """
-        # ______________________________________________________________________________
-        # 1.    Wait for not start this callback at the same time of _handle_tracking.
-        self._mutex_lock_handle_audio.acquire()
-        self._mutex_lock_handle_audio.release()
-
-        # ______________________________________________________________________________
-        # 1.1.  This method must be thread-safe, so we check with a mutex if it's already
-        #       running. In that case, we stop the unnecessary new run.
-        self._mutex_human_presence.acquire()
-
-        if not self._human_presence:
-            self._mutex_human_presence.release()
-            return
-        else:
-            self._mutex_human_presence.release()
-
-        # ______________________________________________________________________________
-        # 1.2   Speech2Text to understand if there is noise or not in that audio.
-        #       Also, get the text from the audio. 
-        #       If there's no words in the audio, restart the listening to keep active
-        #       the michrophone.
-
-        speech2textResp = self._persistence_service_call('s2t', audio)
-        text = speech2textResp.output.data
-
-        if (text == '' or text == 'ERR1' or text == 'ERR2'):
-            if self._verbose:
-                print(f'[CORE] 1. Does not unterstood, text={text}.')
-            
-            self._mutex_human_presence.acquire()
-            if self._human_presence:
-                self._t2s("I don't understood.")
-                self._persistence_service_call('startListening')
-            self._mutex_human_presence.release()
-            return
-
-        if self._verbose:
-            print(f'[CORE] 1. Listened: {text}')
-
-        # This part is used just for save some audio to use in the tests from home.
-        if SAVE_RAW_AUDIO:
-            audio_data = np.array(audio.data).astype(np.float32, order='C') / 32768.0  # to float32
-            if not os.path.exists(os.path.join(REF_PATH, 'saved_audio')):
-                os.mkdir(os.path.join(REF_PATH, 'saved_audio'))
-            write(os.path.join(REF_PATH, 'saved_audio', f'{datetime.now().strftime("%m-%d-%Y-%H-%M-%S")}.wav'), RATE, audio_data)
-
-        # ______________________________________________________________________________
-        # 2.    If the audio contains voice, we use getEmbedding to compute the 
-        #       embedding of that audio and we add that in a buffer. 
-
-        getEmbeddingResp = self._persistence_service_call('getEmbedding', audio)
-        embedding = getEmbeddingResp.output
-
-        # ______________________________________________________________________________
-        # 3.    If in the previos conversational round the user was known and the time 
-        #       between the two rounds is less than CONVERSATION_ROUND_MIN_LEN seconds, 
-        #       use the previos known identity.
-        time = datetime.now()
-
-        if (self._prev_time is not None) and \
-            ((time - self._prev_time).seconds <= CONVERSATION_ROUND_MAX_LEN) and \
-            (self._prev_label != -1):
-
-            if self._verbose:
-                print(f'[CORE] 3. Re-Identification: Using previous identity.')
-            
-            label = self._prev_label
-            name = self._prev_name
-        
-        # ______________________________________________________________________________
-        #  3.1  Else try to get the label of the embedding previous computed.  
-        else:
-            getLabelResp = self._persistence_service_call('getLabel', embedding)
-            label = getLabelResp.out_label.data
-            name = getLabelResp.out_name.data
-
-            if self._verbose:
-                print(f'[CORE] 3.1 Re-Identification: name={name}, label={label}')
-        
-        self._prev_time = time
-        self._prev_label = label
-        self._prev_name = name
-        
-        # ______________________________________________________________________________
-        # 3.2   If the label is known, we store that embedding with that label. 
-        #       Otherwise we add that in a buffer because we assume the chatbot 
-        #       give us the name in feaw conversation round. The buffer will be 
-        #       cleared if the people will be identified to avoid to assign that 
-        #       embedding to other people.
-
-        if label == -1:  
-            # unknown voice
-            self._buffer.put(embedding)
-
-        else:  # known voice
-            self._persistence_service_call('setEmbedding', embedding, Int16(label), String(name))
-            self._buffer.clear()
-
-        # ______________________________________________________________________________
-        # 4.    Interaction with the chatbot. The chatbot take in input the sentence, 
-        #       and name, label from the reidentification service and provide in output
-        #       a response and a new_label, new_name actually present in the slots.
-        #
-        #       If the identity is not known we provide the next label because there is
-        #       a case in witch the chatbot require the label to execute the operation 
-        #       just before of return the name to set the identity.
-
-        if label != -1:
-            response_text, new_label, new_name = self._chatbot_interaction(text, name, label)
-        else:
-            nextLabelResp = self._persistence_service_call('nextLabel')
-            next_label = nextLabelResp.out_label.data
-            response_text, new_label, new_name = self._chatbot_interaction(text, name, next_label)
-
-        if self._verbose:
-            print(f'[CORE] 4. Chatbot: response={response_text}, name={new_name}, label={new_label}.')
-
-        # ______________________________________________________________________________
-        # 5.    Set embedding if previously was unknown and now the name is provided by
-        #       the chatbot. 
-        
-        if label == -1 and new_name != '':
-        
-            while not self._buffer.isEmpty():
-                setEmbeddingResp = self._persistence_service_call('setEmbedding', self._buffer.pop(), Int16(new_label), String(new_name))
-                new_label = setEmbeddingResp.out_label.data
-
-            self._prev_label = new_label
-            self._prev_name = new_name
-            
-            if self._verbose:
-                print(f'[CORE] 5. Setted label={new_label} and name={new_name}')
-
-        # ______________________________________________________________________________
-        # 5.1.  Chatbot response can come after a person go away, so we chech if the person is
-        #       here (for example saying goodbye and walk away without wait for a response)
-        self._mutex_human_presence.acquire()
-        hp = self._human_presence
-        self._mutex_human_presence.release()
-
-        if not hp:
-            return
-
-        # ______________________________________________________________________________      
-        # 6.    Speech2Text to reproduce the response as audio.
-        #       Pepper start making speacking movement. After that we made pepper speak.
-        #       Finally pepper start moving for listening.
-        self._t2s(response_text)        
-
-        # ______________________________________________________________________________
-        # 6.1   After Pepper has told, we restart the listening.
-        self._mutex_human_presence.acquire()
-        self._persistence_service_call('startListening')
-        self._mutex_human_presence.release()
 
     def _handle_tracking(self, presence):
         """Callback function for topic track/human_presence. Implement an FSM to 
@@ -350,7 +325,6 @@ class CoreNode(object):
         # ______________________________________________________________________________  
         # 0.    This variable contains True if an human is present, false if not. We can
         #       assume if this function is running that state this value is just changed.
-        self._mutex_lock_handle_audio.acquire()
         self._mutex_human_presence.acquire()
         self._human_presence = presence.data
 
@@ -362,12 +336,6 @@ class CoreNode(object):
 
             if self._verbose:
                 print('[CORE] Tracking: Human presence detected.')
-
-            self._persistence_service_call('startListening')
-
-            # Also, Pepper start moving for listening.
-            if ON_PEPPER:            
-                self._persistence_service_call('listeningMoving')
 
         else:
             # ______________________________________________________________________________  
@@ -388,12 +356,7 @@ class CoreNode(object):
             if CHATBOT_RUNNING:
                 self._chatbot_interaction('/restart', '', -1)
 
-            # Stop moving Pepper
-            if ON_PEPPER:
-                self._persistence_service_call('stopMoving')
-
         self._mutex_human_presence.release()
-        self._mutex_lock_handle_audio.release()
 
     def _handle_shutdown(self):
         """On killing the application, stop all the service that can be running on 
