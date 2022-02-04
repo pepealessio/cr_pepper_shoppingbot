@@ -375,8 +375,7 @@ if __name__ == "__main__":
     try:
         node = CoreNode()
         node.start()
-
     except rospy.ServiceException as e:
-            print(f'[CORE] rospy.ServiceException. Service call failed: {e}')
+        print(f'[CORE] rospy.ServiceException. Service call failed: {e}')
     except Exception as e:
         print(f'[CORE] ERROR in execution: {e}')
