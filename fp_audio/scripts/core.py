@@ -261,8 +261,7 @@ class CoreNode(object):
 
             # ______________________________________________________________________________      
             # 6.    Speech2Text to reproduce the response as audio.
-            #       Pepper start making speacking movement. After that we made pepper speak.
-            #       Finally pepper start moving for listening.
+            #       After that we made pepper speak.
             self._t2s(response_text) 
 
     def _chatbot_interaction(self, text, name, label):
