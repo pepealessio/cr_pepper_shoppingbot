@@ -117,7 +117,6 @@ class CoreNode(object):
         """
         if ON_PEPPER:
             self._persistence_service_call('tts', text)
-            sleep(0.01)  # needed to synchronize
         else:
             try:
                 to_speak = gTTS(text=text, lang=LANGUAGE, slow=False)
