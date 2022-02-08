@@ -13,12 +13,8 @@ intents:
 - update
 - thank_you
 - nlu_fallback
-- affirm
-- deny
-- bot_information
 - thankyou
 entities:
-- item_form
 - item_name
 - item_quantity
 - username
