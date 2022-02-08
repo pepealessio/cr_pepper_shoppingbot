@@ -62,9 +62,6 @@ add_service_files(
   WakeUp.srv
   StartFollowing.srv
   StopFollowing.srv
-  StopMoving.srv
-  ListeningMoving.srv
-  ResponseMoving.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -38,8 +38,7 @@ LANGUAGE='en-GB'
 MAX_EMBEDDING_PER_LABEL = 6
 
 # pyAudio microphone idex. That need to be changed basing on the device. 
-# -- On our pc is 6.
-MICROPHONE_INDEX = 6
+MICROPHONE_INDEX = 2
 
 # Flag: If False, the services who need Pepper are not called. Useful for debug.
 # -- In the use must be True.

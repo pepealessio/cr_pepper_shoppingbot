@@ -6,5 +6,4 @@
     <node pkg="pepper_nodes" type="image_input_node.py" name="image_input_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
     <node pkg="pepper_nodes" type="wakeup_node.py" name="wakeup_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
     <node pkg="pepper_nodes" type="follow_node.py" name="follow_node" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
-    <node pkg="pepper_nodes" type="interaction_movement.py" name="interaction_movement" required="true" args="--ip=$(arg nao_ip) --port=$(arg nao_port)" output="screen"/>
 </launch>

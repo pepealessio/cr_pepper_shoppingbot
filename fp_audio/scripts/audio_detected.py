@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from config import *
-from fp_audio.srv import StartListening
+from fp_audio.srv import StartListening, StartListeningResponse
 import numpy as np
 import rospy
 import speech_recognition as sr
@@ -19,14 +19,8 @@ class AudioDetected(object):
         Args:
             raw_audio_topic (str): The name of the topic on which the audio must be published.
         """
-        self._publisher = rospy.Publisher(raw_audio_topic, Int16MultiArray, queue_size=None)
         self._r = sr.Recognizer()
         self._m = sr.Microphone(device_index=MICROPHONE_INDEX, sample_rate=RATE, chunk_size=CHUNK_SIZE)
-
-        # Mutex because this service can be called from multiple handler, so we need that 
-        # thread safe.
-        self._mutex = Lock()
-        self._running = False
 
         self._verbose = verbose
     
@@ -37,11 +31,9 @@ class AudioDetected(object):
         rospy.Service('startListening', StartListening, self._handle_start_listening, buff_size=1)
         rospy.spin()
 
-
     def _handle_start_listening(self, req):
         """Callback function for startListening service. 
         Calibrate the microphone with the ambient noise and start listening.
-        This method id thread-safe.
 
         Args:
             req (StartListening): empty request
@@ -49,14 +41,6 @@ class AudioDetected(object):
         Returns:
             str: an ack who tell if the audio was listened.
         """
-        self._mutex.acquire()
-
-        if not self._running:
-            self._running = True
-            self._mutex.release()
-        else:
-            self._mutex.release()
-            return "already running"
 
         with self._m as source:
             self._r.adjust_for_ambient_noise(source, duration=CALIBRATION_TIME)
@@ -83,25 +67,13 @@ class AudioDetected(object):
                 data_to_send.data = np.frombuffer(audio.get_raw_data(), dtype=np.int16)
                 if self._verbose:
                     print("[T2S] Listened")
-                self._publisher.publish(data_to_send)
-
-                self._mutex.acquire()
-                self._running = False
-                self._mutex.release()
-
-                return 'listened'
 
             except sr.WaitTimeoutError:
                 if self._verbose:
                     print("[T2S] Timeout")
                 data_to_send.data = b'\x00 \x00'
-                self._publisher.publish(data_to_send)
 
-                self._mutex.acquire()
-                self._running = False
-                self._mutex.release()
-
-                return "timeout"
+            return StartListeningResponse(data_to_send)
 
 
 if __name__ == "__main__":
